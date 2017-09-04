@@ -1,0 +1,17 @@
+language: java
+jdk:
+  - oraclejdk8
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+script:
+  - ./gradlew test --stacktrace
+
+after_success:
+  - "chmod a+x automerger"
+  - "BRANCHES_TO_MERGE_REGEX='-dev$' BRANCH_TO_MERGE_INTO=master GITHUB_REPO=Dragas/bIRC"
+  - ./automerger
