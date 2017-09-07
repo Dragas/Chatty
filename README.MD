@@ -67,11 +67,9 @@ repositories {
     maven { url "https://oss.sonatype.org/content/repositories/releases" }
 }
 ```
-And then just list `chatty-core`/`chatty-websocket`/`chatty-irc` as your dependency:
+And then just list `chatty-core`/`chatty-websocket` as your dependency:
 ```groovy
 dependencies {
-    compile "lt.saltyjuice.dragas:chatty-core:3.0.0"
+    compile "lt.saltyjuice.dragas:chatty-core:3.0.1"
 }
 ```
-
-Note: `chatty-irc` is still at `1.3.2`
