@@ -1,3 +1,4 @@
 rootProject.name = 'chatty'
 include ":core"
 include ":async"
+include ":websocket"
