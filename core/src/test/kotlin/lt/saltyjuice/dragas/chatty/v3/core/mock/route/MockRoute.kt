@@ -1,4 +1,4 @@
-package lt.saltyjuice.dragas.chatty.v3.core.mock
+package lt.saltyjuice.dragas.chatty.v3.core.mock.route
 
 import lt.saltyjuice.dragas.chatty.v3.core.route.Route
 

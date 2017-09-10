@@ -2,7 +2,7 @@ package lt.saltyjuice.dragas.chatty.v3.core.unit
 
 import lt.saltyjuice.dragas.chatty.v3.core.controller.LambdaController
 import lt.saltyjuice.dragas.chatty.v3.core.event.LambdaEvent
-import lt.saltyjuice.dragas.chatty.v3.core.mock.MockRouter
+import lt.saltyjuice.dragas.chatty.v3.core.mock.route.MockRouter
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith

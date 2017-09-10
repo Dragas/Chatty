@@ -1,4 +1,4 @@
-package lt.saltyjuice.dragas.chatty.v3.core.mock
+package lt.saltyjuice.dragas.chatty.v3.core.mock.adapter
 
 import lt.saltyjuice.dragas.chatty.v3.core.adapter.Adapter
 

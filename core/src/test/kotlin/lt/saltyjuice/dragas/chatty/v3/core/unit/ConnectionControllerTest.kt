@@ -3,9 +3,9 @@ package lt.saltyjuice.dragas.chatty.v3.core.unit
 import kotlinx.coroutines.experimental.runBlocking
 import lt.saltyjuice.dragas.chatty.v3.core.event.ConnectEvent
 import lt.saltyjuice.dragas.chatty.v3.core.event.DisconnectEvent
-import lt.saltyjuice.dragas.chatty.v3.core.mock.MockClient
-import lt.saltyjuice.dragas.chatty.v3.core.mock.MockConnectionController
-import lt.saltyjuice.dragas.chatty.v3.core.mock.MockController
+import lt.saltyjuice.dragas.chatty.v3.core.mock.controller.MockConnectionController
+import lt.saltyjuice.dragas.chatty.v3.core.mock.controller.MockController
+import lt.saltyjuice.dragas.chatty.v3.core.mock.main.MockClient
 import org.junit.AfterClass
 import org.junit.Assert
 import org.junit.BeforeClass

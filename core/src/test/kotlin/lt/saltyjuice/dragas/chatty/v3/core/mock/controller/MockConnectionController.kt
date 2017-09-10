@@ -1,4 +1,4 @@
-package lt.saltyjuice.dragas.chatty.v3.core.mock
+package lt.saltyjuice.dragas.chatty.v3.core.mock.controller
 
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.Channel
@@ -6,6 +6,8 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import lt.saltyjuice.dragas.chatty.v3.core.controller.ConnectionController
 import lt.saltyjuice.dragas.chatty.v3.core.event.ConnectEvent
+import lt.saltyjuice.dragas.chatty.v3.core.event.IntegerInputEvent
+import lt.saltyjuice.dragas.chatty.v3.core.mock.adapter.MockAdapter
 import lt.saltyjuice.dragas.chatty.v3.core.route.On
 
 class MockConnectionController : ConnectionController<String, Int, Float, String>()

@@ -1,6 +1,7 @@
-package lt.saltyjuice.dragas.chatty.v3.core.mock
+package lt.saltyjuice.dragas.chatty.v3.core.mock.controller
 
 import lt.saltyjuice.dragas.chatty.v3.core.controller.Controller
+import lt.saltyjuice.dragas.chatty.v3.core.event.IntegerInputEvent
 import lt.saltyjuice.dragas.chatty.v3.core.route.On
 import lt.saltyjuice.dragas.chatty.v3.core.route.When
 
