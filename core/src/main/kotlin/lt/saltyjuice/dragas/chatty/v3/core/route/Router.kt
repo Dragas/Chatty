@@ -53,7 +53,7 @@ abstract class Router
      * modify the request while testing in test callbacks freely, without influencing other routes.
      */
     @Throws(IllegalStateException::class)
-    fun consume(event: Event)
+    open fun consume(event: Event)
     {
         val routes = routes[event.javaClass] ?: return
         routes.parallelStream().forEach()

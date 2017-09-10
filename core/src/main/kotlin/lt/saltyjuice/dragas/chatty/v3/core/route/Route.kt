@@ -54,7 +54,8 @@ open class Route
      */
     open fun canTrigger(request: Event): Boolean
     {
-        return testCallback?.invoke(getControllerInstance(), request.payload) as? Boolean ?: true
+        return request::class.java.isAssignableFrom(type) &&
+                testCallback?.invoke(getControllerInstance(), request.payload) as? Boolean ?: true
     }
 
     /**
@@ -62,10 +63,6 @@ open class Route
      */
     open fun attemptTrigger(request: Event)
     {
-        if (!request::class.java.isAssignableFrom(type))
-        {
-            return
-        }
         if (canTrigger(request))
         {
             callback?.invoke(getControllerInstance(), request.payload)
@@ -180,7 +177,7 @@ open class Route
         {
             val parameter = method.parameterTypes[0]
             val onEventAnnotation = method.getAnnotation(On::class.java).clazz.javaObjectType
-            val fieldType = onEventAnnotation.getField("payload").type
+            val fieldType = onEventAnnotation.getMethod("getPayload").returnType
             if (!parameter.isAssignableFrom(fieldType))
                 throw RouteBuilderException("Unable to cast ${parameter.canonicalName} to ${onEventAnnotation.canonicalName}")
             type(onEventAnnotation)
