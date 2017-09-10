@@ -12,6 +12,7 @@ class MockRouter : Router()
 
     override fun consume(event: Event)
     {
+        super.consume(event)
         val routes = routes[event::class.java] ?: throw IllegalStateException("No routes are able to consume this")
         val route = routes.find { it.canTrigger(event) } ?: throw  IllegalStateException("No Routes are able to consume this")
         route.attemptTrigger(event)
