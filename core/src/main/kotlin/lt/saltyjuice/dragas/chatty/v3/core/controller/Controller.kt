@@ -9,17 +9,17 @@ import lt.saltyjuice.dragas.chatty.v3.core.main.Client
  *
  * Design wise, all helpers methods for formatting responses should be provided here.
  */
-open class Controller
+interface Controller
 {
     /**
      * Send the event back to event queue
      */
-    protected open fun queue(response: Event)
+    fun queue(response: Event)
     {
         Client.queue(response)
     }
 
-    protected open fun queue(lambda: () -> Unit)
+    fun queue(lambda: () -> Unit)
     {
         Client.queue(LambdaEvent(lambda))
     }
