@@ -1,6 +1,7 @@
-package lt.saltyjuice.dragas.chatty.v3.core.route
+package lt.saltyjuice.dragas.chatty.v3.core.controller
 
-import lt.saltyjuice.dragas.chatty.v3.core.Event
+import lt.saltyjuice.dragas.chatty.v3.core.event.Event
+import lt.saltyjuice.dragas.chatty.v3.core.event.LambdaEvent
 import lt.saltyjuice.dragas.chatty.v3.core.main.Client
 
 /**
@@ -16,5 +17,10 @@ open class Controller
     protected open fun queue(response: Event)
     {
         Client.queue(response)
+    }
+
+    protected open fun queue(lambda: () -> Unit)
+    {
+        Client.queue(LambdaEvent(lambda))
     }
 }
