@@ -1,10 +1,7 @@
 package lt.saltyjuice.dragas.chatty.v3.core.route
 
-import lt.saltyjuice.dragas.chatty.v3.core.adapter.Deserializer
+import lt.saltyjuice.dragas.chatty.v3.core.Event
 import lt.saltyjuice.dragas.chatty.v3.core.exception.RouteBuilderException
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.AfterMiddleware
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.BeforeMiddleware
-import kotlin.streams.toList
 
 
 /**
@@ -13,33 +10,35 @@ import kotlin.streams.toList
  * @param Request a wrapper object obtained from [Deserializer] implementation
  * @param Response a wrapper object returned from callback of corresponding route
  */
-abstract class Router<Request, Response>
+abstract class Router
 {
-    protected open val routes: MutableList<Route<Request, Response>> = mutableListOf()
+    protected open val routes: HashMap<Class<out Event>, MutableList<Route>> = HashMap()
     /**
      * Returns a route builder, which handles assigning middlewares, callback and test callback and builds routes that can
      * be used by this router.
      */
-    abstract fun builder(): Route.Builder<Request, Response>
+    abstract fun builder(): Route.Builder
 
     /**
      * Adds a route to router, which is later used to test requests
      */
-    open fun add(route: Route<Request, Response>)
+    open fun add(route: Route)
     {
-        if (!routes.contains(route))
-            routes.add(route)
+        val list = routes[route.type] ?: mutableListOf()
+        if (!list.contains(route))
+            list.add(route)
+        routes[route.type] = list
     }
 
     /**
      * a shorthand to build and add a route.
      */
-    open fun add(route: Route.Builder<Request, Response>)
+    open fun add(route: Route.Builder)
     {
         add(route.build())
     }
 
-    open fun add(routes: List<Route.Builder<Request, Response>>)
+    open fun add(routes: List<Route.Builder>)
     {
         routes.forEach(this::add)
     }
@@ -49,31 +48,27 @@ abstract class Router<Request, Response>
      *
      * Implementations should take into consideration, that there are global middlewares that should be tested against.
      *
-     * Your [Request] class MAY implement [Cloneable] interface, which permits your data being cloned, if it does, you may then
-     * modify the request while testing in middlewares and test callbacks freely, without influencing other routes.
-     *
-     * @throws IllegalStateException when [initialize] wasn't called.
-     * @return a list of all responses that were generated using [request]
+     * Your payload MAY implement [Cloneable] interface, which permits your data being cloned, if it does, you may then
+     * modify the request while testing in test callbacks freely, without influencing other routes.
      */
     @Throws(IllegalStateException::class)
-    fun consume(request: Request): List<Response>
+    fun consume(event: Event)
     {
-        return routes.parallelStream()
-                .flatMap()
+        val routes = routes[event.javaClass] ?: return
+        routes.parallelStream().forEach()
                 {
-                    val cloned = if (request is Cloneable) request.javaClass.getMethod("clone").invoke(request) as Request else request
-                    it.attemptTrigger(cloned)
-                    it.getResponses().stream()
-                }.toList()
+                    val payload = if (event.payload is Cloneable) event.payload.javaClass.getMethod("clone").invoke(event.payload) else event.payload
+                    val eventClone = event.javaClass.getDeclaredConstructor(payload.javaClass).newInstance(payload)
+                    it.attemptTrigger(eventClone)
+                }
     }
 
     /**
      * Scraps particular controller for methods that have [On] annotation and then builds routes for them.
      */
     @Throws(RouteBuilderException::class)
-    @JvmOverloads
-    fun consume(controller: Class<out Controller<Response>>, beforeMiddlewares: List<Class<out BeforeMiddleware<Request>>> = listOf(), afterMiddlewares: List<Class<out AfterMiddleware<Response>>> = listOf())
+    fun consume(controller: Class<out Controller>)
     {
-        add(builder().consume(controller, beforeMiddlewares, afterMiddlewares))
+        add(builder().consume(controller))
     }
 }
