@@ -138,7 +138,7 @@ open class Route
             route.callback = mCallback
             route.testCallback = mTestCallback
             route.controllerClazz = mControllerClazz
-            route.controllerInstanceHolder = route.controllerClazz.newInstance() as Controller
+            route.controllerInstanceHolder = getController(mControllerClazz)
             superAdaptCalled = true
             return route
         }
@@ -154,7 +154,8 @@ open class Route
             return controller
                     .methods
                     .toList()
-                    .parallelStream()
+                    //.parallelStream()
+                    .stream()
                     .filter { it.getAnnotation(On::class.java) != null }
                     .peek { if (it.parameterCount != 1) throw RouteBuilderException("Too many parameters for method ${it.name} in ${it.declaringClass.canonicalName}") }
                     .map()
@@ -175,7 +176,7 @@ open class Route
         @Throws(RouteBuilderException::class)
         open fun consume(controller: Class<out Controller>, method: Method): Route.Builder
         {
-            val parameter = method.parameterTypes[0]
+            val parameter = method.parameterTypes[0].kotlin.javaObjectType
             val onEventAnnotation = method.getAnnotation(On::class.java).clazz.javaObjectType
             val fieldType = onEventAnnotation.getMethod("getPayload").returnType
             if (!parameter.isAssignableFrom(fieldType))
@@ -186,15 +187,32 @@ open class Route
             callback(method)
             method.getAnnotation(When::class.java)?.apply()
             {
-                val testMethods = controller.methods.filter { method -> method.name == value && method.parameterCount == 1 }
+                val testMethods = controller.methods
+                        .filter { it.name == value }
+                        .filter { it.parameterCount == 1 }
+                        .filter { it.returnType.kotlin.javaObjectType.isAssignableFrom(Boolean::class.javaObjectType) }
                 if (testMethods.isEmpty())
                     throw RouteBuilderException("Unable to find method named $value in ${controller.canonicalName}. Note: It's case sensitive.")
-                val testMethod = testMethods.find { it.parameterTypes[0].isAssignableFrom(parameter) }
+                val testMethod = testMethods.find { it.parameterTypes[0].kotlin.javaObjectType.isAssignableFrom(parameter) }
                         ?: throw RouteBuilderException("Unable to find method named $value in ${controller.canonicalName}. Note: It needs to have a single parameter that matches in @On annotation.")
                 testCallback(testMethod)
             }
             superConsumeMethodCalledWhenBuilding = true
             return this
+        }
+    }
+
+    companion object
+    {
+        @JvmStatic
+        private val controllerMap: HashMap<Class<out Controller>, Controller> = HashMap()
+
+        @JvmStatic
+        fun getController(clazz: Class<out Controller>): Controller
+        {
+            val controller = controllerMap[clazz] ?: clazz.newInstance()
+            controllerMap[clazz] = controller
+            return controller
         }
     }
 }

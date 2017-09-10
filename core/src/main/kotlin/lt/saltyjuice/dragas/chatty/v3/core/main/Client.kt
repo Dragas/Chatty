@@ -1,19 +1,20 @@
 package lt.saltyjuice.dragas.chatty.v3.core.main
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import lt.saltyjuice.dragas.chatty.v3.core.controller.Controller
+import lt.saltyjuice.dragas.chatty.v3.core.event.Event
 import lt.saltyjuice.dragas.chatty.v3.core.exception.InitializeAlreadyCalledException
 import lt.saltyjuice.dragas.chatty.v3.core.exception.InitializeNotCalledException
 import lt.saltyjuice.dragas.chatty.v3.core.exception.RouteBuilderException
 import lt.saltyjuice.dragas.chatty.v3.core.io.Input
 import lt.saltyjuice.dragas.chatty.v3.core.io.Output
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.AfterMiddleware
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.BeforeMiddleware
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.MiddlewareUtility
-import lt.saltyjuice.dragas.chatty.v3.core.route.Controller
 import lt.saltyjuice.dragas.chatty.v3.core.route.Route
 import lt.saltyjuice.dragas.chatty.v3.core.route.Router
-import lt.saltyjuice.dragas.chatty.v3.core.route.UsesControllers
 import java.lang.Exception
 import java.net.Socket
+import java.util.*
 
 /**
  * An abstraction which defines how bot's client should be defined. Usually the pipeline
@@ -34,23 +35,17 @@ import java.net.Socket
  * By default, [Client] does not have an internal socket, as some implementations won't be using it.
  * It's up to the implementing module to decide what will it use as a "Socket"
  */
-abstract class Client<InputBlock, Request, Response, OutputBlock>
+abstract class Client(vararg protected open val controllers: Class<out Controller>)
 {
-    /**
-     * A wrapper for socket's input stream, which is used to deserialize provided data.
-     */
-    protected abstract val sin: Input<InputBlock, Request>
-    /**
-     * A wrapper for socket's output stream, which is used to serialize generated data by the bot.
-     */
-    protected abstract val sout: Output<Response, OutputBlock>
-    /**
-     * Handles testing of [Request] wrappers.
-     */
-    protected abstract val router: Router<Request, Response>
+    protected abstract val router: Router
 
     private var initialized = false
 
+    protected open var eventQueue: Channel<Event> = Channel(1000)
+
+    protected open var eventQueueListeners: List<Job> = listOf()
+
+    protected open val eventQueueListenerCount = Runtime.getRuntime().availableProcessors()
     /**
      * Implementations should handle how the client itself is initialized: for example routes,
      * client settings, thread pools, etc.
@@ -62,21 +57,54 @@ abstract class Client<InputBlock, Request, Response, OutputBlock>
     {
         if (initialized)
             throw InitializeAlreadyCalledException()
-        val beforeMiddlewares = MiddlewareUtility.getBeforeMiddlewares(this) as List<Class<out BeforeMiddleware<Request>>>
-        val afterMiddlewares = MiddlewareUtility.getAfterMiddlewares(this) as List<Class<out AfterMiddleware<Response>>>
-        val annotation = javaClass.getAnnotation(UsesControllers::class.java) ?: throw IllegalStateException("This client doesn't have any callbacks.")
-        annotation.value.forEach()
+        controllers.forEach()
         { controller ->
             try
             {
-                router.consume(controller.java as Class<out Controller<Response>>, beforeMiddlewares, afterMiddlewares)
+                router.consume(controller)
             }
             catch (err: Exception)
             {
-                throw RouteBuilderException("Failed to consume ${controller.java.canonicalName}", err)
+                throw RouteBuilderException("Failed to consume ${controller.canonicalName}", err)
             }
         }
+        initializeEventQueueListeners()
+        mDefault = this
         initialized = true
+    }
+
+    /**
+     * Initializes event queue listeners
+     */
+    open fun initializeEventQueueListeners()
+    {
+        val mutable = mutableListOf<Job>()
+        repeat(eventQueueListenerCount)
+        {
+            mutable.add(launch(CommonPool)
+            {
+                eventQueue.consumeEach(this@Client::consumeEvent)
+            })
+        }
+        eventQueueListeners = mutable
+    }
+
+    /**
+     * Pushes event to router if execution time has come
+     */
+    open fun consumeEvent(event: Event)
+    {
+        val now = Date()
+        if (event.executeAt > now)
+        {
+            launch(CommonPool)
+            {
+                delay(event.executeAt.time - now.time)
+                eventQueue.send(event)
+            }
+            return
+        }
+        router.consume(event)
     }
 
     /**
@@ -95,20 +123,17 @@ abstract class Client<InputBlock, Request, Response, OutputBlock>
     /**
      * runs the pipeline partially
      */
-    open fun run()
+    open fun consume() = runBlocking()
     {
-        val request = sin.getRequest()
-        router.consume(request).forEach(this::writeResponse)
+        consumeEvent(eventQueue.receive())
     }
 
-    /**
-     * Writes [response] to [sout]
-     *
-     * @param response a response generated by implementing application
-     */
-    protected fun writeResponse(response: Response)
+    open fun queueEvent(event: Event)
     {
-        sout.writeResponse(response)
+        launch(CommonPool)
+        {
+            eventQueue.send(event)
+        }
     }
 
     /**
@@ -123,7 +148,7 @@ abstract class Client<InputBlock, Request, Response, OutputBlock>
         {
             onConnect()
             while (isConnected())
-                run()
+                consume()
         }
         onDisconnect()
     }
@@ -139,4 +164,23 @@ abstract class Client<InputBlock, Request, Response, OutputBlock>
      * @return true, if the client is still connected
      */
     abstract fun isConnected(): Boolean
+
+    companion object
+    {
+        @JvmStatic
+        private lateinit var mDefault: Client
+
+        @JvmStatic
+        val default: Client
+            get()
+            {
+                return mDefault
+            }
+
+        @JvmStatic
+        fun queue(event: Event)
+        {
+            default.queueEvent(event)
+        }
+    }
 }
