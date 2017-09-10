@@ -1,6 +1,7 @@
 package lt.saltyjuice.dragas.chatty.v3.core.route
 
-import lt.saltyjuice.dragas.chatty.v3.core.Event
+import lt.saltyjuice.dragas.chatty.v3.core.controller.Controller
+import lt.saltyjuice.dragas.chatty.v3.core.event.Event
 import lt.saltyjuice.dragas.chatty.v3.core.exception.RouteBuilderException
 
 

@@ -1,6 +1,6 @@
 package lt.saltyjuice.dragas.chatty.v3.core.route
 
-import lt.saltyjuice.dragas.chatty.v3.core.Event
+import lt.saltyjuice.dragas.chatty.v3.core.event.Event
 import kotlin.reflect.KClass
 
 /**
