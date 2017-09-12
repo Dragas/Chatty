@@ -7,7 +7,6 @@ Elegant Java/Kotlin chat bot framework.
 ### How does it look?
 
 ```kotlin
-@Singleton // marks that the controller should not be recreated after every request
 @Before(AnotherMockBeforeMiddleware::class) // marks that any callbacks generated from this controller have this middleware
 @After(AnotherMockAfterMiddleware::class) // read above.
 class MockController() : Controller<MockRequest, MockResponse>()
@@ -70,6 +69,6 @@ repositories {
 And then just list `chatty-core`/`chatty-websocket` as your dependency:
 ```groovy
 dependencies {
-    compile "lt.saltyjuice.dragas:chatty-core:3.0.1"
+    compile "lt.saltyjuice.dragas:chatty-core:3.0.2"
 }
 ```

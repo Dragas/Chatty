@@ -1,4 +1,3 @@
 # Chatty/Async
 
-Package meant to implement asynchronous behavior for Chatty bots. Currently depends on 
-`chatty-core:3.0.0`
+Discontinued. Because it was merged into `chatty-core:4.0.0`
