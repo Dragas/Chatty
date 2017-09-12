@@ -2,7 +2,6 @@ package lt.saltyjuice.dragas.chatty.v3.core.controller
 
 import lt.saltyjuice.dragas.chatty.v3.core.event.Event
 import lt.saltyjuice.dragas.chatty.v3.core.event.LambdaEvent
-import lt.saltyjuice.dragas.chatty.v3.core.event.ResponseEvent
 import lt.saltyjuice.dragas.chatty.v3.core.main.Client
 import java.util.*
 
@@ -32,10 +31,5 @@ interface Controller
         val date = Date()
         date.time += delay
         queue(LambdaEvent(lambda, date))
-    }
-
-    fun queue(response: Any)
-    {
-        queue(ResponseEvent(response))
     }
 }

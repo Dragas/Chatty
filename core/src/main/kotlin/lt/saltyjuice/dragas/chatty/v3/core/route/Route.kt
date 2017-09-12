@@ -34,9 +34,14 @@ open class Route
     protected open var controllerInstanceHolder: Controller? = null
 
     /**
-     * Holds reference to type of this route
+     * Holds reference to type of this route's trigger type
      */
     open lateinit var type: Class<out Event>
+
+    /**
+     * Holds reference to callback's parameter type
+     */
+    protected open var paramterType: Class<*>? = null
 
     /**
      * Invoked, when this route is being tested.
@@ -55,6 +60,7 @@ open class Route
     open fun canTrigger(request: Event): Boolean
     {
         return request::class.java.isAssignableFrom(type) &&
+                paramterType?.isAssignableFrom(request.payload::class.javaObjectType) ?: true &&
                 testCallback?.invoke(getControllerInstance(), request.payload) as? Boolean ?: true
     }
 
@@ -139,6 +145,7 @@ open class Route
             route.testCallback = mTestCallback
             route.controllerClazz = mControllerClazz
             route.controllerInstanceHolder = getController(mControllerClazz)
+            route.paramterType = mTestCallback?.parameterTypes?.get(0)?.kotlin?.javaObjectType
             superAdaptCalled = true
             return route
         }
@@ -154,16 +161,15 @@ open class Route
             return controller
                     .methods
                     .toList()
-                    //.parallelStream()
                     .stream()
                     .filter { it.getAnnotation(On::class.java) != null }
-                    .peek { if (it.parameterCount != 1) throw RouteBuilderException("Too many parameters for method ${it.name} in ${it.declaringClass.canonicalName}") }
+                    .peek { if (it.parameterCount != 1) throw RouteBuilderException("Too many parameters for method ${it.declaringClass.canonicalName}#${it.name}") }
                     .map()
                     { method ->
                         val builder = this.javaClass.newInstance()
                         builder.consume(controller, method)
                         if (!builder.superConsumeMethodCalledWhenBuilding)
-                            throw RouteBuilderException("super.consume was not called.")
+                            throw RouteBuilderException("super.consume(controller, method) was not called.")
                         builder
                     }
                     .toList()
@@ -179,8 +185,7 @@ open class Route
             val parameter = method.parameterTypes[0].kotlin.javaObjectType
             val onEventAnnotation = method.getAnnotation(On::class.java).clazz.javaObjectType
             val fieldType = onEventAnnotation.getMethod("getPayload").returnType
-            if (!parameter.isAssignableFrom(fieldType))
-                throw RouteBuilderException("Unable to cast ${parameter.canonicalName} to ${onEventAnnotation.canonicalName}")
+            if (!fieldType.isAssignableFrom(parameter)) throw RouteBuilderException("Unable to cast ${parameter.canonicalName} to ${fieldType.canonicalName}")
             type(onEventAnnotation)
             description(method.getAnnotation(Description::class.java)?.value ?: "${controller.canonicalName}#${method.name}")
             controller(controller)
@@ -191,8 +196,6 @@ open class Route
                         .filter { it.name == value }
                         .filter { it.parameterCount == 1 }
                         .filter { it.returnType.kotlin.javaObjectType.isAssignableFrom(Boolean::class.javaObjectType) }
-                if (testMethods.isEmpty())
-                    throw RouteBuilderException("Unable to find method named $value in ${controller.canonicalName}. Note: It's case sensitive.")
                 val testMethod = testMethods.find { it.parameterTypes[0].kotlin.javaObjectType.isAssignableFrom(parameter) }
                         ?: throw RouteBuilderException("Unable to find method named $value in ${controller.canonicalName}. Note: It needs to have a single parameter that matches in @On annotation.")
                 testCallback(testMethod)
