@@ -1,21 +1,18 @@
 # Chatty 
 
-![Build Status](https://travis-ci.org/Dragas/bIRC.svg?branch=master)  
+![Build Status](https://travis-ci.org/Dragas/Chatty.svg?branch=master)  
 
 Elegant Java/Kotlin chat bot framework.
 
 ### How does it look?
 
 ```kotlin
-@Before(AnotherMockBeforeMiddleware::class) // marks that any callbacks generated from this controller have this middleware
-@After(AnotherMockAfterMiddleware::class) // read above.
+
 class MockController() : Controller<MockRequest, MockResponse>()
 {
-    @On(MockRequest::class) // marks the method as callback and tests if request is or has a super class of the argument
+    @On(MockEvent::class) // marks the method as callback and tests if request is or has a super class of the argument
     @When("mockTest") // marks which method is used to test the request
     // Note that you can't add same middleware twice to a route.
-    @Before(MockBeforeMiddleware::class) // notes which middlewares test the request before actual testing
-    @After(MockAfterMiddleware::class) // notes which middlewares test the generate responses
     @Description("A mock method brought to you by readme.md") // a description [shrug]
     fun mockResponseGenerator(mockRequest: MockRequest)
     {
@@ -27,14 +24,6 @@ class MockController() : Controller<MockRequest, MockResponse>()
         return true
     }
 }
-```
-
-And then in your client
-```kotlin
-@UsesControllers(MockController::class) // Marks which controllers are used by the client
-@Before(GlobalBeforeMiddleware::class) // adds this middleware to all routes generated in this client
-@After(GlobalAfterMiddleware::class) // read above
-class MockClient() : Client<String, Request, Response, String>
 ```
 
 ## Usage
