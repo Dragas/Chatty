@@ -1,3 +1,20 @@
+## [4.0.0-SNAPSHOT]
+
+### Breaking changes
+
+- Removed annotation `@Singleton` since it was a failed experiment.
+- Removed Annotation `@UsesControllers` since it provided a redundancy layer. Now controllers are provided via constructor.
+- Removed middlewares due to added redundancy layer as well as their annotations
+- `@On` annotation now requires an `Event` type.
+- `Client` does not feature `sin` and `sout` fields anymore. Instead, an event based `ConnectionController`
+should be implemented and consumed.
+- `Router` now listens for events instead of raw requests.
+
+### Changes
+
+- Depends on `kotlinx.coroutines:0.18`
+
+
 ## [3.0.0] 2017-08-30 Thread safety
 
 As the name suggests, this patch implements changes in framework to make it more threadsafe than

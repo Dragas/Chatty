@@ -12,6 +12,13 @@ import lt.saltyjuice.dragas.chatty.v3.core.io.Input
 import lt.saltyjuice.dragas.chatty.v3.core.io.Output
 import lt.saltyjuice.dragas.chatty.v3.core.route.On
 
+/**
+ * Basic implementation of controller oriented towards connection handling.
+ *
+ * Since Chatty does not check for inherited annotations each overrided method should redeclare respective annotations.
+ * Such implementation also permits having multiple connections in the same application, provided you can manage
+ * handling multiple request/response schemes.
+ */
 abstract class ConnectionController<InputBlock, Request, Response, OutputBlock> : Controller, Input<InputBlock, Request>, Output<Response, OutputBlock>
 {
     override abstract val adapter: Adapter<InputBlock, Request, Response, OutputBlock>
