@@ -12,7 +12,6 @@ class MockController() : Controller<MockRequest, MockResponse>()
 {
     @On(MockEvent::class) // marks the method as callback and tests if request is or has a super class of the argument
     @When("mockTest") // marks which method is used to test the request
-    // Note that you can't add same middleware twice to a route.
     @Description("A mock method brought to you by readme.md") // a description [shrug]
     fun mockResponseGenerator(mockRequest: MockRequest)
     {
@@ -28,36 +27,22 @@ class MockController() : Controller<MockRequest, MockResponse>()
 
 ## Usage
 
-Considering that `chatty-core` is just an abstraction set, you might want to look into either `chatty-irc`, `chatty-websocket`
-or even their implementations: `chatty-birc` and `chatty-discord`(Websocket implementation for discord API) and 
-`chatty-biscord`.
-
-With that out of the way, `chatty-core` contains 4 abstractions that should be implemented: 
- * An adapter, located in `lt.saltyjuice.dragas.chatty.v3.core.adapter`;
-   * An adapter handles how the data is wrapped and unwrapped from something you get from socket or what ever you choose
-   to use. Has 4 generic parameters to help you with what should be returned when doing both serialization and deserialization.
- * An `io` scheme, located in `lt.saltyjuice.dragas.chatty.v3.core.io`;
-   * `Input`/`Output` handles how data is passed to an adapter. This is the layer you'd want to have your socket streams at.  
- * Client, located in `lt.saltyjuice.dragas.chatty.v3.core.main`;
-   * Client in itself handles how the entire thing works. Usually it requests wrapped data from `Input` and then passes
-   responses from `Router` to `Output`.
- * A router, located in `lt.saltyjuice.dragas.chatty.v3.core.route`;
-   * This is where the magic happens. Router checks which routes pass their test against the provided request object.
-   Then depending on implementation, you might want to either return first passing response or all of them.
+As of 4.0.0 Chatty uses event queue based APIs so all you need to do create your own event set and listen to them.
+To add your own protocol listener you should just implement the `ConnectionController` abstraction and provide it
+while creating your Client.
 
 ## Downloading 
 
 Make sure you have sonatype as one of your checked repositories
 ```groovy
 repositories {
-    mavenCentral()
-    jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/releases" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 ```
 And then just list `chatty-core`/`chatty-websocket` as your dependency:
 ```groovy
 dependencies {
-    compile "lt.saltyjuice.dragas:chatty-core:3.0.2"
+    compile "lt.saltyjuice.dragas:chatty-core:4.0.0-SNAPSHOT"
 }
 ```
