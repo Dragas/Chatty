@@ -13,7 +13,7 @@ import java.io.IOException
 import java.net.URI
 import javax.websocket.*
 
-abstract class WebsocketConnectionController : Endpoint(), ConnectionController
+abstract class WebsocketConnectionController<BaseRequest> : Endpoint(), ConnectionController
 {
     open val client: ClientManager = ClientManager.createClient()
     open var uri: URI = URI.create("")
@@ -28,7 +28,7 @@ abstract class WebsocketConnectionController : Endpoint(), ConnectionController
     /**
      * Declares base class for all requests that will be incoming through this endpoint implementation.
      */
-    protected abstract val baseClass: Class<*>
+    protected abstract val baseClass: Class<BaseRequest>
 
     @On(ConnectionInitEvent::class)
     override final fun handleConnectionInit(payload: Int)
@@ -87,11 +87,11 @@ abstract class WebsocketConnectionController : Endpoint(), ConnectionController
     /**
      * A callback for when a message is received. This just passes it down the pipeline.
      */
-    open protected fun handleMessage(request: Any)
+    open protected fun handleMessage(request: BaseRequest)
     {
         launch(CommonPool)
         {
-            Client.queue(getEventWrapper(request))
+            Client.queue(getEventWrapper(request as Any))
         }
     }
 

@@ -1,5 +1,5 @@
 group 'lt.saltyjuice.dragas'
-version '3.0.1'
+version '4.0.1-SNAPSHOT'
 buildscript {
     ext.kotlin_version = '1.1.4-2'
     repositories {
@@ -22,7 +22,7 @@ repositories {
 }
 dependencies {
     compile fileTree(dir: "lib", includes: ['*.jar'])
-    compile "lt.saltyjuice.dragas:chatty-async:3.0.1"
+    compile "lt.saltyjuice.dragas:chatty-core:4.0.1-SNAPSHOT"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile group: 'org.glassfish.grizzly', name: 'grizzly-http-all', version: '2.3.18'
     compile group: 'org.glassfish.tyrus', name: 'tyrus-client', version: '1.13.1'
