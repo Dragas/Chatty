@@ -1,40 +1,54 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.route
 
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.AfterMiddleware
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.BeforeMiddleware
+import lt.saltyjuice.dragas.chatty.v3.core.controller.Controller
+import lt.saltyjuice.dragas.chatty.v3.core.event.Event
 import lt.saltyjuice.dragas.chatty.v3.core.route.Route
-import lt.saltyjuice.dragas.chatty.v3.discord.message.request.OPRequest
-import lt.saltyjuice.dragas.chatty.v3.discord.message.response.OPResponse
 import lt.saltyjuice.dragas.chatty.v3.websocket.route.WebSocketRoute
+import java.lang.reflect.Method
 
-open class DiscordRoute<Request : OPRequest<*>, Response : OPResponse<*>> : WebSocketRoute<Request, Response>()
+open class DiscordRoute : WebSocketRoute()
 {
-    open class Builder<Request : OPRequest<*>, Response : OPResponse<*>> : WebSocketRoute.Builder<Request, Response>()
+    open class Builder : WebSocketRoute.Builder()
     {
-        override fun testCallback(callback: (Route<Request, Response>, Request) -> Boolean): Builder<Request, Response>
+        override fun testCallback(callback: Method): Builder
         {
             return super.testCallback(callback) as Builder
         }
 
-        override fun callback(callback: (Route<Request, Response>, Request) -> Unit): Builder<Request, Response>
+        override fun callback(callback: Method): Builder
         {
             return super.callback(callback) as Builder
         }
 
-        override fun after(clazz: Class<out AfterMiddleware<Response>>): Builder<Request, Response>
+        override fun controller(clazz: Class<out Controller>): Builder
         {
-            return super.after(clazz) as Builder
+            return super.controller(clazz) as Builder
         }
 
-        override fun before(clazz: Class<out BeforeMiddleware<Request>>): Builder<Request, Response>
+        override fun type(clazz: Class<out Event>): Builder
         {
-            return super.before(clazz) as Builder
+            return super.type(clazz) as Builder
+        }
+
+        override fun consume(controller: Class<out Controller>, method: Method): Builder
+        {
+            return super.consume(controller, method) as Builder
+        }
+
+        override fun description(string: String): Builder
+        {
+            return super.description(string) as Builder
+        }
+
+        override fun adapt(route: Route): DiscordRoute
+        {
+            return super.adapt(route) as DiscordRoute
         }
 
         /**
          * Implementations should return a raw route object which is later used in [adapt] to add all the callbacks, middlewares, etc.
          */
-        override fun returnableRoute(): DiscordRoute<Request, Response>
+        override fun returnableRoute(): DiscordRoute
         {
             return DiscordRoute()
         }

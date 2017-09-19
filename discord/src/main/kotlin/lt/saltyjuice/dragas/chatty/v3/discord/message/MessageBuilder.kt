@@ -4,8 +4,8 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import lt.saltyjuice.dragas.chatty.v3.discord.Settings
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
+import lt.saltyjuice.dragas.chatty.v3.discord.controller.DiscordConnectionController
 import lt.saltyjuice.dragas.chatty.v3.discord.exception.MessageBuilderException
-import lt.saltyjuice.dragas.chatty.v3.discord.main.DiscordEndpoint
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -18,7 +18,7 @@ import java.util.*
  *
  * Contains various helpers and builder methods to easily build a message of various flavors. All methods return this embed builder.
  */
-open class MessageBuilder @JvmOverloads constructor(channelId: String = "", typingCallback: Callback<Any> = DiscordEndpoint.emptyCallback) : Callback<Message>
+open class MessageBuilder @JvmOverloads constructor(val channelId: String = "", typingCallback: Callback<Any> = DiscordConnectionController.emptyCallback) : Callback<Message>
 {
     @Expose
     @SerializedName("embed")
@@ -43,21 +43,23 @@ open class MessageBuilder @JvmOverloads constructor(channelId: String = "", typi
     init
     {
         if (channelId != "")
-            DiscordEndpoint.startTyping(channelId, typingCallback)
+            DiscordConnectionController.startTyping(channelId, typingCallback)
     }
 
     /**
-     * Builds the message and sends it to some channel. Be it a DM or a public one.
+     * Builds the message and sends it to some channel. Be it a DM or a public one. There's no need to
+     * "Cancel" the typing event as builder already handles it.
      */
     @JvmOverloads
     @Throws(MessageBuilderException::class)
-    open fun send(channelId: String, callback: Callback<Message> = this)
+    open fun send(channelId: String = this.channelId, callback: Callback<Message> = this)
     {
         buildMessage()
         if (attachment == null)
             Utility.discordAPI.createMessage(channelId, this, queryParamas).enqueue(callback)
         else
             Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas).enqueue(callback)
+        DiscordConnectionController.cancelTyping(channelId)
     }
 
     /**

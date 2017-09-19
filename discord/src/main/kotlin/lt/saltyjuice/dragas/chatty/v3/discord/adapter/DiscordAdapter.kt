@@ -1,11 +1,11 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.adapter
 
 import com.google.gson.Gson
+import lt.saltyjuice.dragas.chatty.v3.core.adapter.Adapter
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.response.OPResponse
-import lt.saltyjuice.dragas.chatty.v3.websocket.adapter.WebSocketAdapter
 import javax.websocket.Decoder
 import javax.websocket.Encoder
 import javax.websocket.EndpointConfig
@@ -15,7 +15,7 @@ import javax.websocket.EndpointConfig
  *
  * As implementation requires, this adapter uses GSON to deserialize JSON based messages.
  */
-open class DiscordAdapter : WebSocketAdapter<String, OPRequest<*>, OPResponse<*>, String>(), Decoder.Text<OPRequest<*>>, Encoder.Text<OPResponse<*>>
+open class DiscordAdapter : Adapter<String, OPRequest<*>, OPResponse<*>, String>(), Decoder.Text<OPRequest<*>>, Encoder.Text<OPResponse<*>>
 {
     protected open val decodableOPCodes: Array<Int> = arrayOf(OPCode.DISPATCH, OPCode.HEARTBEAT_ACK, OPCode.HELLO, OPCode.INVALID_SESSION, OPCode.RECONNECT)
     protected open val gson: Gson by lazy()

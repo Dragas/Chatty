@@ -1,3 +1,9 @@
+## [0.3.0-UNSTABLE]
+
+### Breaking changes
+
+- Depends on `chatty-websocket:4.0.1-SNAPSHOT`
+
 ## [0.2.0-UNSTABLE]
 
 ### Breaking changes:
