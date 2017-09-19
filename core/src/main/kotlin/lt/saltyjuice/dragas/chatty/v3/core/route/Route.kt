@@ -204,18 +204,4 @@ open class Route
             return this
         }
     }
-
-    companion object
-    {
-        @JvmStatic
-        private val controllerMap: HashMap<Class<out Controller>, Controller> = HashMap()
-
-        @JvmStatic
-        fun getController(clazz: Class<out Controller>): Controller
-        {
-            val controller = controllerMap[clazz] ?: clazz.newInstance()
-            controllerMap[clazz] = controller
-            return controller
-        }
-    }
 }

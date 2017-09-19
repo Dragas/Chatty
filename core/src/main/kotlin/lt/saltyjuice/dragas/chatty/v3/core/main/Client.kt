@@ -1,20 +1,21 @@
 package lt.saltyjuice.dragas.chatty.v3.core.main
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import lt.saltyjuice.dragas.chatty.v3.core.controller.Controller
+import lt.saltyjuice.dragas.chatty.v3.core.event.ConnectionInitEvent
 import lt.saltyjuice.dragas.chatty.v3.core.event.Event
 import lt.saltyjuice.dragas.chatty.v3.core.exception.InitializeAlreadyCalledException
 import lt.saltyjuice.dragas.chatty.v3.core.exception.InitializeNotCalledException
 import lt.saltyjuice.dragas.chatty.v3.core.exception.RouteBuilderException
-import lt.saltyjuice.dragas.chatty.v3.core.io.Input
-import lt.saltyjuice.dragas.chatty.v3.core.io.Output
 import lt.saltyjuice.dragas.chatty.v3.core.route.Route
 import lt.saltyjuice.dragas.chatty.v3.core.route.Router
 import java.lang.Exception
 import java.net.Socket
-import java.util.*
 
 /**
  * An abstraction which defines how bot's client should be defined. Usually the pipeline
@@ -41,11 +42,11 @@ abstract class Client(vararg protected open val controllers: Class<out Controlle
 
     private var initialized = false
 
-    protected open var eventQueue: Channel<Event> = Channel(1000)
-
     protected open var eventQueueListeners: List<Job> = listOf()
 
     protected open val eventQueueListenerCount = Runtime.getRuntime().availableProcessors()
+
+    protected open var isRunning = false
     /**
      * Implementations should handle how the client itself is initialized: for example routes,
      * client settings, thread pools, etc.
@@ -68,9 +69,8 @@ abstract class Client(vararg protected open val controllers: Class<out Controlle
                 throw RouteBuilderException("Failed to consume ${controller.canonicalName}", err)
             }
         }
-        initializeEventQueueListeners()
-        mDefault = this
         initialized = true
+        queue(ConnectionInitEvent())
     }
 
     /**
@@ -94,31 +94,8 @@ abstract class Client(vararg protected open val controllers: Class<out Controlle
      */
     open fun consumeEvent(event: Event)
     {
-        val now = Date()
-        if (event.executeAt > now)
-        {
-            launch(CommonPool)
-            {
-                delay(event.executeAt.time - now.time)
-                eventQueue.send(event)
-            }
-            return
-        }
         router.consume(event)
     }
-
-    /**
-     * Implementations should handle how the client acts once socket has successfully connected
-     *
-     * For proper behavior, super needs to be called.
-     */
-    abstract fun onConnect()
-
-    /**
-     * Implementations should handle how the client acts once the socket has disconnected. Usually
-     * it will just clean after itself: close any loggers it had, etc.
-     */
-    abstract fun onDisconnect()
 
     /**
      * runs the pipeline partially
@@ -126,14 +103,6 @@ abstract class Client(vararg protected open val controllers: Class<out Controlle
     open fun consume() = runBlocking()
     {
         consumeEvent(eventQueue.receive())
-    }
-
-    open fun queueEvent(event: Event)
-    {
-        launch(CommonPool)
-        {
-            eventQueue.send(event)
-        }
     }
 
     /**
@@ -144,43 +113,20 @@ abstract class Client(vararg protected open val controllers: Class<out Controlle
         initialize()
         if (!initialized)
             throw InitializeNotCalledException()
-        if (connect())
-        {
-            onConnect()
-            while (isConnected())
-                consume()
-        }
-        onDisconnect()
+        isRunning = true
+        initializeEventQueueListeners()
+        while (isRunning)
+            consume()
     }
-
-    /**
-     * Implementations should handle how the client connects
-     * @return true, if connection succeeds
-     */
-    abstract fun connect(): Boolean
-
-    /**
-     * Implementations should determine themselves on whether or not the client is still connected.
-     * @return true, if the client is still connected
-     */
-    abstract fun isConnected(): Boolean
 
     companion object
     {
-        @JvmStatic
-        private lateinit var mDefault: Client
+        private val eventQueue: Channel<Event> = Channel(1000)
 
         @JvmStatic
-        val default: Client
-            get()
-            {
-                return mDefault
-            }
-
-        @JvmStatic
-        fun queue(event: Event)
+        fun queue(event: Event) = launch(CommonPool)
         {
-            default.queueEvent(event)
+            eventQueue.send(event)
         }
     }
 }
