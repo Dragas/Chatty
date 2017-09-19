@@ -58,8 +58,7 @@ abstract class Router
         val routes = routes[event.javaClass] ?: return
         routes.parallelStream().forEach()
                 {
-                    val payload = if (event.payload is Cloneable) event.payload::class.javaObjectType.getMethod("clone").invoke(event.payload) else event.payload
-                    val eventClone: Event = event.javaClass.constructors.first { it.parameterCount == 1 }.newInstance(payload) as Event
+                    val eventClone = if (event is Cloneable) event::class.java.getMethod("clone").invoke(event) as Event else event
                     it.attemptTrigger(eventClone)
                 }
     }
