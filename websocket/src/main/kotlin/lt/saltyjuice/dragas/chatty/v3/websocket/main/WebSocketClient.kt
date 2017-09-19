@@ -22,6 +22,5 @@ import lt.saltyjuice.dragas.chatty.v3.websocket.route.WebSocketRouter
  */
 abstract class WebSocketClient(vararg controllers: Class<out Controller>) : Client(*controllers)
 {
-
     abstract override val router: WebSocketRouter
 }

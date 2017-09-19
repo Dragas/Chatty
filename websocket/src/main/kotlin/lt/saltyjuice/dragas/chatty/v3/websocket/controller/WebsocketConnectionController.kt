@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import lt.saltyjuice.dragas.chatty.v3.core.controller.ConnectionController
 import lt.saltyjuice.dragas.chatty.v3.core.event.ConnectionInitEvent
+import lt.saltyjuice.dragas.chatty.v3.core.event.DisconnectEvent
 import lt.saltyjuice.dragas.chatty.v3.core.main.Client
 import lt.saltyjuice.dragas.chatty.v3.core.route.On
 import lt.saltyjuice.dragas.chatty.v3.websocket.event.WebSocketResponseEvent
@@ -15,7 +16,7 @@ import javax.websocket.*
 abstract class WebsocketConnectionController : Endpoint(), ConnectionController
 {
     open val client: ClientManager = ClientManager.createClient()
-    abstract var uri: URI
+    open var uri: URI = URI.create("")
     protected open var cec: ClientEndpointConfig.Builder = ClientEndpointConfig.Builder.create()
 
     /**
@@ -103,5 +104,17 @@ abstract class WebsocketConnectionController : Endpoint(), ConnectionController
     fun handleResponse(payload: Any)
     {
         respond(payload)
+    }
+
+    @On(DisconnectEvent::class)
+    override final fun handleDisconnect(payload: Int)
+    {
+        onDisconnect()
+    }
+
+    open fun onDisconnect()
+    {
+        session?.close()
+        session = null
     }
 }
