@@ -1,9 +1,7 @@
 package lt.saltyjuice.dragas.chatty.v3.websocket.route
 
-import lt.saltyjuice.dragas.chatty.v3.async.route.AsyncRoute
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.AfterMiddleware
-import lt.saltyjuice.dragas.chatty.v3.core.middleware.BeforeMiddleware
 import lt.saltyjuice.dragas.chatty.v3.core.route.Route
+import java.lang.reflect.Method
 
 
 /**
@@ -11,7 +9,7 @@ import lt.saltyjuice.dragas.chatty.v3.core.route.Route
  *
  * @see Route
  */
-open class WebSocketRoute<Request, Response> : AsyncRoute<Request, Response>()
+open class WebSocketRoute : Route()
 {
 
     /**
@@ -19,44 +17,31 @@ open class WebSocketRoute<Request, Response> : AsyncRoute<Request, Response>()
      *
      * This implementation returns Websocket routes, which can be used in websocket based applications.
      */
-    open class Builder<Request, Response> : AsyncRoute.Builder<Request, Response>()
+    open class Builder : Route.Builder()
     {
-        override fun before(clazz: Class<out BeforeMiddleware<Request>>): Builder<Request, Response>
-        {
-            return super.before(clazz) as Builder
-        }
-
-
-        override fun after(clazz: Class<out AfterMiddleware<Response>>): Builder<Request, Response>
-        {
-            return super.after(clazz) as Builder
-        }
-
-        override fun description(string: String): Builder<Request, Response>
+        override fun description(string: String): Builder
         {
             return super.description(string) as Builder
         }
 
-        override fun adapt(route: Route<Request, Response>): WebSocketRoute<Request, Response>
+        override fun adapt(route: Route): WebSocketRoute
         {
             return super.adapt(route) as WebSocketRoute
         }
 
-        override fun returnableRoute(): WebSocketRoute<Request, Response>
+        override fun returnableRoute(): WebSocketRoute
         {
             return WebSocketRoute()
         }
 
-        override fun testCallback(callback: (Route<Request, Response>, Request) -> Boolean): Builder<Request, Response>
+        override fun testCallback(callback: Method): Builder
         {
-            return super.testCallback(callback) as Builder<Request, Response>
+            return super.testCallback(callback) as Builder
         }
 
-        override fun callback(callback: (Route<Request, Response>, Request) -> Unit): Builder<Request, Response>
+        override fun callback(callback: Method): Builder
         {
-            return super.callback(callback) as Builder<Request, Response>
+            return super.callback(callback) as Builder
         }
-
-
     }
 }
