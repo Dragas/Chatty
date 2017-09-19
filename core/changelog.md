@@ -1,3 +1,15 @@
+## [4.0.1-SNAPSHOT]
+
+### Breaking changes
+
+- Removed IO package. Instead you should use implement ConnectionController interface. If necessary, you
+may use AdaptingConnectionController which features an adapter.
+
+### Added
+
+- Controller utilities. They permit adding an already instantiated controller to the cache so that
+it wouldn't be remade twice.
+
 ## [4.0.0-SNAPSHOT]
 
 ### Breaking changes
