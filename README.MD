@@ -43,6 +43,16 @@ repositories {
 And then just list `chatty-core`/`chatty-websocket` as your dependency:
 ```groovy
 dependencies {
-    compile "lt.saltyjuice.dragas:chatty-core:4.0.0-SNAPSHOT"
+    compile "lt.saltyjuice.dragas:chatty-core:4.0.1-SNAPSHOT"
 }
+```
+
+There's also discord API implementation that's currently WIP, but is stable enough to be used
+and is implemented by [Jeeves, the Tavern Keeper](https://github.com/Dragas/Biscord). You can download it
+from sonatype snapshot repository
+```groovy
+dependencies{
+    compile "lt.saltyjuice.dragas:chatty-core:0.4.0-SNAPSHOT"
+}
+
 ```

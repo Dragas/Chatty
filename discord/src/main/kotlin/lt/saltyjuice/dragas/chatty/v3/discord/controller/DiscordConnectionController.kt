@@ -10,16 +10,13 @@ import lt.saltyjuice.dragas.chatty.v3.discord.Settings
 import lt.saltyjuice.dragas.chatty.v3.discord.adapter.CompressedDiscordAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.adapter.DiscordAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
+import lt.saltyjuice.dragas.chatty.v3.discord.main.DiscordSession
 import lt.saltyjuice.dragas.chatty.v3.discord.message.MessageBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelCreate
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildCreate
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildMemberAdd
-import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventReady
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
-import lt.saltyjuice.dragas.chatty.v3.discord.message.request.*
-import lt.saltyjuice.dragas.chatty.v3.discord.message.response.GatewayHeartbeat
-import lt.saltyjuice.dragas.chatty.v3.discord.message.response.GatewayIdentify
-import lt.saltyjuice.dragas.chatty.v3.discord.message.response.OPResponse
+import lt.saltyjuice.dragas.chatty.v3.discord.message.request.OPRequest
 import lt.saltyjuice.dragas.chatty.v3.websocket.controller.WebsocketConnectionController
 import lt.saltyjuice.dragas.chatty.v3.websocket.event.WebSocketResponseEvent
 import retrofit2.Call
@@ -29,108 +26,20 @@ import java.net.URI
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
 import javax.websocket.ClientEndpointConfig
+import javax.websocket.CloseReason
+import javax.websocket.EndpointConfig
 import javax.websocket.Session
+import kotlinx.coroutines.experimental.channels.Channel as CoroutinesChannel
 
 open class DiscordConnectionController : WebsocketConnectionController<OPRequest<*>>()
 {
     override val baseClass: Class<OPRequest<*>> = OPRequest::class.java
-    val shards = AtomicInteger(1)
-    val currentShard = AtomicInteger(0)
-    val sessions = Collections.synchronizedList(ArrayList<Session>())
-    val heartbeatJobs = Collections.synchronizedList(ArrayList<Job>())
+    protected val shards = AtomicInteger(1)
 
-    @On(GatewayHello::class)
-    fun handleHello(request: Hello)
+    protected open fun createShard(shard: Int)
     {
-        onHello(request)
-    }
-
-    open fun onHello(request: Hello)
-    {
-        heartbeatJobs.add(launch(CommonPool)
-        {
-            val currentShard = currentShard.get()
-            while (true)
-            {
-                onHeartbeat(currentShard)
-                delay(request.heartBeatInterval)
-            }
-        })
-
-        val identify = Identify().apply()
-        {
-            token = Settings.token
-            threshold = 50
-            shard = arrayListOf(currentShard.getAndIncrement(), shards.get())
-        }
-
-        handleResponse(currentShard.get() - 1, GatewayIdentify(identify))
-    }
-
-    private fun onHeartbeat(shard: Int)
-    {
-
-        var sequenceNumber: Long? = sequenceNumber.get()
-        if (sequenceNumber == -1L)
-            sequenceNumber = null
-        handleResponse(shard, GatewayHeartbeat(sequenceNumber))
-    }
-
-    open fun handleResponse(shard: Int, response: OPResponse<*>)
-    {
-        val session = sessions[shard]
-        handleResponse(session, response)
-    }
-
-    open fun handleResponse(session: Session, response: OPResponse<*>)
-    {
-        session.asyncRemote.sendObject(response)
-    }
-
-    @On(GatewayAck::class)
-    fun handleAck(request: Any)
-    {
-        onAck()
-    }
-
-    open fun onAck()
-    {
-
-    }
-
-    @On(GatewayInvalid::class)
-    fun handleSessionInvalid(request: Boolean)
-    {
-        onSessionInvalid(request)
-    }
-
-    open fun onSessionInvalid(request: Boolean)
-    {
-
-    }
-
-    @On(GatewayReconnect::class)
-    fun handleReconnect(request: Any)
-    {
-        onReconnect()
-    }
-
-    open fun onReconnect()
-    {
-
-    }
-
-    @On(EventReady::class)
-    fun handleReady(request: Ready)
-    {
-        onReady(request)
-    }
-
-    open fun onReady(request: Ready)
-    {
-        readyEvent = request
+        DiscordSession.createShard(shard, shards.get())
     }
 
     @On(EventGuildCreate::class)
@@ -165,7 +74,6 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         onMemberAdd(request)
     }
 
-
     open fun onMemberAdd(request: ChangedMember)
     {
         val guild = guilds[request.guildId]!!
@@ -185,44 +93,39 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         cec
                 .decoders(listOf(DiscordAdapter::class.java, CompressedDiscordAdapter::class.java))
                 .encoders(listOf(DiscordAdapter::class.java))
-    }
-
-    override fun onConnect(session: Session)
-    {
-        sessions.add(session)
-    }
-
-    override fun handleMessage(request: OPRequest<*>)
-    {
-        super.handleMessage(request)
-        if (request.sequenceNumber != null)
-        {
-            setSequenceNumber(request.sequenceNumber!!)
+        repeat(gatewayResponse.shards)
+        { shard ->
+            createShard(shard)
+            if (shard != 0)
+                onConnectionInit()
         }
     }
 
 
+    override fun onOpen(session: Session, config: EndpointConfig)
+    {
+        val discordSession = DiscordSession(session)
+        sessions.add(discordSession)
+        session.addMessageHandler(baseClass, discordSession::handleMessage)
+    }
+
+    override fun onClose(session: Session, reason: CloseReason)
+    {
+        super.onClose(session, reason)
+        sessions.find { it.isThisShard(session) }?.apply()
+        {
+            sessions.remove(this)
+            val shard = getShard()
+            System.err.println("Attempting to reconnect to shard #$shard")
+            DiscordSession.createShard(shard, shards.get())
+            onConnectionInit()
+        }
+    }
 
     companion object
     {
         @JvmStatic
-        private val sequenceNumber: AtomicLong = AtomicLong(-1)
-
-        @JvmStatic
-        private var heartbeatJob: Job? = null
-
-        @JvmStatic
-        fun setSequenceNumber(number: Long)
-        {
-            sequenceNumber.set(number)
-        }
-
-        @JvmStatic
-        fun destroy()
-        {
-            heartbeatJob?.cancel()
-            heartbeatJob = null
-        }
+        private val sessions = Collections.synchronizedList(ArrayList<DiscordSession>())
 
         @JvmStatic
         private lateinit var readyEvent: Ready

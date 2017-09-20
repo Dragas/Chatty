@@ -1,3 +1,14 @@
+## [0.4.0-SNAPSHOT]
+
+### Added
+
+- Discord session wrapper which permits resuming, reconnection
+and provides multiple shard support.
+
+### Removed
+
+- Gateway related events from `DiscordConnectionController`
+
 ## [0.3.0-UNSTABLE]
 
 ### Breaking changes
