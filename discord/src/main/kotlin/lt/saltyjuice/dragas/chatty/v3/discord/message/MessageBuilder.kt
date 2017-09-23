@@ -131,7 +131,9 @@ open class MessageBuilder @JvmOverloads constructor(val channelId: String = "", 
         if (isBuildingMention)
             throw MessageBuilderException("You haven't finished mentioning someone.")
         //validate()
-        return message(messageBuilder.toString())
+        if (content.isBlank())
+            return message(messageBuilder.toString())
+        return this
     }
 
     /**
