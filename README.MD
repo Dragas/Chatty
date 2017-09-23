@@ -52,7 +52,7 @@ and is implemented by [Jeeves, the Tavern Keeper](https://github.com/Dragas/Bisc
 from sonatype snapshot repository
 ```groovy
 dependencies{
-    compile "lt.saltyjuice.dragas:chatty-core:0.4.0-SNAPSHOT"
+    compile "lt.saltyjuice.dragas:chatty-discord:0.4.1-SNAPSHOT"
 }
 
 ```
