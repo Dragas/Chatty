@@ -15,6 +15,7 @@ import lt.saltyjuice.dragas.chatty.v3.discord.message.MessageBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelCreate
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildCreate
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildMemberAdd
+import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventReady
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.OPRequest
 import lt.saltyjuice.dragas.chatty.v3.websocket.controller.WebsocketConnectionController
@@ -69,7 +70,7 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
     }
 
     @On(EventGuildMemberAdd::class)
-    open fun handleGuildMemberAdd(request: ChangedMember)
+    fun handleGuildMemberAdd(request: ChangedMember)
     {
         onMemberAdd(request)
     }
@@ -79,6 +80,18 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         val guild = guilds[request.guildId]!!
         guild.users.add(request)
     }
+
+    @On(EventReady::class)
+    fun handleEventReady(request: Ready)
+    {
+        onReady(request)
+    }
+
+    open fun onReady(request: Ready)
+    {
+        readyEvent = request
+    }
+
 
     override fun getEventWrapper(request: Any): Event
     {
@@ -128,28 +141,50 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         private val sessions = Collections.synchronizedList(ArrayList<DiscordSession>())
 
         @JvmStatic
-        private lateinit var readyEvent: Ready
+        @Volatile
+        private var readyEvent: Ready? = null
+            @Synchronized
+            set(it)
+            {
+                it ?: return
+                field = it
+            }
+            @Synchronized
+            get() = field
 
         @JvmStatic
+        @Synchronized
         public fun isMe(anotherUser: User): Boolean
         {
             return getCurrentUserId() == anotherUser.id
         }
 
+        /**
+         * Returns current user ID. Equivalent to calling [getCurrentUser]?.id
+         *
+         * @return null, when connection wasn't initiated
+         */
         @JvmStatic
-        public fun getCurrentUserId(): String
+        @Synchronized
+        public fun getCurrentUserId(): String?
         {
-            return getCurrentUser().id
+            return getCurrentUser()?.id
+        }
+
+        /**
+         * Returns currently logged in user.
+         *
+         * @return null, when connection wasn't started
+         */
+        @JvmStatic
+        @Synchronized
+        public fun getCurrentUser(): User?
+        {
+            return readyEvent?.user
         }
 
         @JvmStatic
-        public fun getCurrentUser(): User
-        {
-            return readyEvent.user!!
-        }
-
-        private val debugChannel = System.getenv("debug_channel_id")
-        @JvmStatic
+        @Synchronized
         public fun getUser(channelId: String, userId: String): Member?
         {
             val channel = channels[channelId]
@@ -172,21 +207,24 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
             }
             return member
         }
+        @JvmStatic
+        private val guilds: ConcurrentHashMap<String, CreatedGuild> = ConcurrentHashMap<String, CreatedGuild>()
 
         @JvmStatic
-        private val guilds: HashMap<String, CreatedGuild> = HashMap()
-
-        @JvmStatic
-        private val channels: HashMap<String, Channel> = HashMap()
+        private val channels: ConcurrentHashMap<String, Channel> = ConcurrentHashMap()
 
         @JvmStatic
         private val typingMap: ConcurrentHashMap<String, Job> = ConcurrentHashMap()
+
+        @JvmStatic
+        private val debugChannel = System.getenv("debug_channel_id")
 
         /**
          * Starts typing to particular channel.
          */
         @JvmOverloads
         @JvmStatic
+        @Synchronized
         fun startTyping(channelId: String, callback: Callback<Any> = emptyCallback)
         {
             cancelTyping(channelId)
@@ -204,23 +242,27 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
          * Stops typing to particular channel.
          */
         @JvmStatic
+        @Synchronized
         fun cancelTyping(channelId: String)
         {
             typingMap.remove(channelId)?.cancel()
         }
 
         @JvmStatic
-        val emptyCallback: Callback<Any> = object : Callback<Any>
-        {
-            override fun onFailure(call: Call<Any>, t: Throwable)
-            {
-                t.printStackTrace(System.err)
-            }
 
-            override fun onResponse(call: Call<Any>, response: Response<Any>)
+        val emptyCallback: Callback<Any>
+            @Synchronized
+            get() = object : Callback<Any>
             {
-                println("response is successful: ${response.isSuccessful}")
+                override fun onFailure(call: Call<Any>, t: Throwable)
+                {
+                    t.printStackTrace(System.err)
+                }
+
+                override fun onResponse(call: Call<Any>, response: Response<Any>)
+                {
+                    //println("response is successful: ${response.isSuccessful}")
+                }
             }
-        }
     }
 }
