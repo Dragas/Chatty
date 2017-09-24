@@ -97,6 +97,7 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
 
     open fun onMemberUpdate(request: ChangedMember)
     {
+        onMemberRemove(request)
         onMemberAdd(request)
     }
 

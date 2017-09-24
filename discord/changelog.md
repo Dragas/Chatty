@@ -1,3 +1,9 @@
+## [0.4.3-SNAPSHOT]
+
+### Fixed
+
+- Fixed an issue where member would be modified incorrectly
+
 ## [0.4.2-SNAPSHOT]
 
 ### Fixed
