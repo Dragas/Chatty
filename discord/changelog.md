@@ -1,3 +1,15 @@
+## [0.4.2-SNAPSHOT]
+
+### Fixed
+
+- Fixed an issue where Discord Connection Controller would ignore member changes.
+
+## [0.4.1-SNAPSHOT]
+
+### Changed
+
+- Discord Connection controller now handles ready events again.
+
 ## [0.4.0-SNAPSHOT]
 
 ### Added

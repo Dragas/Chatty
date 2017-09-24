@@ -12,10 +12,7 @@ import lt.saltyjuice.dragas.chatty.v3.discord.adapter.DiscordAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.main.DiscordSession
 import lt.saltyjuice.dragas.chatty.v3.discord.message.MessageBuilder
-import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelCreate
-import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildCreate
-import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildMemberAdd
-import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventReady
+import lt.saltyjuice.dragas.chatty.v3.discord.message.event.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.OPRequest
 import lt.saltyjuice.dragas.chatty.v3.websocket.controller.WebsocketConnectionController
@@ -92,6 +89,28 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         readyEvent = request
     }
 
+    @On(EventGuildMemberUpdate::class)
+    fun handleGuildMemberUpdate(request: ChangedMember)
+    {
+        onMemberUpdate(request)
+    }
+
+    open fun onMemberUpdate(request: ChangedMember)
+    {
+        onMemberAdd(request)
+    }
+
+    @On(EventGuildMemberRemove::class)
+    fun handleGuildMemberRemove(request: ChangedMember)
+    {
+        onMemberRemove(request)
+    }
+
+    open fun onMemberRemove(request: ChangedMember)
+    {
+        guilds[request.guildId]?.users?.removeIf { it.user.id == request.user.id }
+    }
+
 
     override fun getEventWrapper(request: Any): Event
     {
@@ -142,15 +161,14 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
 
         @JvmStatic
         @Volatile
+        @set:Synchronized
+        @get:Synchronized
         private var readyEvent: Ready? = null
-            @Synchronized
             set(it)
             {
                 it ?: return
                 field = it
             }
-            @Synchronized
-            get() = field
 
         @JvmStatic
         @Synchronized
@@ -249,10 +267,8 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         }
 
         @JvmStatic
-
-        val emptyCallback: Callback<Any>
-            @Synchronized
-            get() = object : Callback<Any>
+        @get:Synchronized
+        val emptyCallback: Callback<Any> = object : Callback<Any>
             {
                 override fun onFailure(call: Call<Any>, t: Throwable)
                 {
