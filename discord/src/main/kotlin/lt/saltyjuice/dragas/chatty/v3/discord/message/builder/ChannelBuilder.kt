@@ -1,9 +1,9 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.message.response
+package lt.saltyjuice.dragas.chatty.v3.discord.message.builder
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class ChannelBuilder(id: String)
+open class ChannelBuilder(id: String)
 {
     @Expose
     @SerializedName("recipient_id")
