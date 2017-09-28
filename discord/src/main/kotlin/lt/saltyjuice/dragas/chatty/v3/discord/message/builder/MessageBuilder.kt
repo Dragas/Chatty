@@ -16,9 +16,9 @@ import java.util.*
 /**
  * Message Builder for discord messages.
  *
- * Contains various helpers and builder methods to easily build a message of various flavors. All methods return this embed builder.
+ * Contains various helpers and builder methods to easily build a message of various flavors. All methods return this builder.
  */
-open class MessageBuilder @JvmOverloads constructor(val channelId: String = "", typingCallback: Callback<Any> = DiscordConnectionController.emptyCallback) : Callback<Message>
+open class MessageBuilder(val channelId: String) : Builder<Message>
 {
     @Expose
     @SerializedName("embed")
@@ -40,26 +40,42 @@ open class MessageBuilder @JvmOverloads constructor(val channelId: String = "", 
 
     private var embedLength = 0
 
-    init
-    {
-        if (channelId != "")
-            DiscordConnectionController.startTyping(channelId, typingCallback)
-    }
-
     /**
-     * Builds the message and sends it to some channel. Be it a DM or a public one. There's no need to
-     * "Cancel" the typing event as builder already handles it.
+     * Helper constructor which can utilize raw channel object for its ID.
      */
-    @JvmOverloads
-    @Throws(MessageBuilderException::class)
-    open fun send(channelId: String = this.channelId, callback: Callback<Message> = this)
+    constructor(channel: Channel) : this(channel.id)
+
+    override fun send(): Response<Message>
     {
         buildMessage()
+        return if (attachment == null)
+            Utility.discordAPI.createMessage(channelId, this, queryParamas).execute()
+        else
+            Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas).execute()
+    }
+
+    override fun sendAsync()
+    {
+        buildMessage()
+        super.sendAsync()
+    }
+
+    override fun sendAsync(callback: Callback<Message>)
+    {
         if (attachment == null)
             Utility.discordAPI.createMessage(channelId, this, queryParamas).enqueue(callback)
         else
             Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas).enqueue(callback)
-        DiscordConnectionController.cancelTyping(channelId)
+    }
+
+    /**
+     * Starts typing for this message builder.
+     */
+    @JvmOverloads
+    open fun startTyping(callback: Callback<Any>? = null): MessageBuilder
+    {
+        DiscordConnectionController.startTyping(channelId)
+        return this
     }
 
     /**
@@ -133,6 +149,7 @@ open class MessageBuilder @JvmOverloads constructor(val channelId: String = "", 
         //validate()
         if (content.isBlank())
             return message(messageBuilder.toString())
+        DiscordConnectionController.cancelTyping(channelId)
         return this
     }
 
