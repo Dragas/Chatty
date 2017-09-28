@@ -8,7 +8,8 @@ import java.io.IOException
  * Basic interface which unites all builders under one specification.
  *
  * Since all builders are inherently different and used for different things,
- * they still have one thing in common: Being sent.
+ * they still have one thing in common: Being sent. Thus instead of calling `Utility.discordAPI.something`
+ * You should use provided builder instead. It knows what its doing.
  */
 interface Builder<T> : Callback<T>
 {
