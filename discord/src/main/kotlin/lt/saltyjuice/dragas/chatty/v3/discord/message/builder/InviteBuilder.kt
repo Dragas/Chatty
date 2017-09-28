@@ -85,6 +85,7 @@ open class InviteBuilder(val channelId: String) : Builder<Invite>
 
     }
 
+    @Throws(InviteBuilderException::class)
     override final fun validate()
     {
         if (maxAge < 0) throw InviteBuilderException("Max age can't be a negative value")

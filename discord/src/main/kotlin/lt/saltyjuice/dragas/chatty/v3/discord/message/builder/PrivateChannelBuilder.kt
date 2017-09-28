@@ -3,6 +3,7 @@ package lt.saltyjuice.dragas.chatty.v3.discord.message.builder
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
+import lt.saltyjuice.dragas.chatty.v3.discord.exception.PrivateChannelBuilderException
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.User
 import retrofit2.Call
@@ -17,7 +18,7 @@ open class PrivateChannelBuilder(id: String) : Builder<Channel>
 {
     @Expose
     @SerializedName("recipient_id")
-    var usarId: String = id
+    var userId: String = id
 
     /**
      * a shorthand for calling `PrivateChannelBuilder(user.id)`
@@ -43,5 +44,12 @@ open class PrivateChannelBuilder(id: String) : Builder<Channel>
     override fun onResponse(call: Call<Channel>, response: Response<Channel>)
     {
 
+    }
+
+    @Throws(PrivateChannelBuilderException::class)
+    override fun validate()
+    {
+        if (userId.isEmpty())
+            throw PrivateChannelBuilderException("User id can't be empty")
     }
 }
