@@ -11,7 +11,7 @@ import lt.saltyjuice.dragas.chatty.v3.discord.adapter.CompressedDiscordAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.adapter.DiscordAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.main.DiscordSession
-import lt.saltyjuice.dragas.chatty.v3.discord.message.MessageBuilder
+import lt.saltyjuice.dragas.chatty.v3.discord.message.builder.MessageBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.OPRequest
@@ -206,24 +206,29 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         @Synchronized
         public fun getUser(channelId: String, userId: String): Member?
         {
+            if (userId.isEmpty())
+                return null
             val channel = channels[channelId]
             if (channel == null)
             {
-                MessageBuilder().append("Warning: $channelId doesn't correspond to any channel.").send(debugChannel)
+                MessageBuilder(debugChannel).append("Warning: $channelId doesn't correspond to any channel.").send()
                 return null
             }
             val guild = guilds[channel.guildId]
             if (guild == null)
             {
-                MessageBuilder().append("Warning: channel with id ${channel.id} doesn't correspond to any guild.").send(debugChannel)
+                MessageBuilder(debugChannel).append("Warning: channel with id ${channel.id} doesn't correspond to any guild.").send()
                 return null
             }
             val member = guild.users.find { it.user.id == userId }
             if (member == null)
             {
-                MessageBuilder().append("Warning: user with id $userId doesn't correspond to any member.").send(debugChannel)
+                MessageBuilder(debugChannel).append("Warning: user with id $userId doesn't correspond to any member.").send()
                 return null
             }
+
+
+
             return member
         }
         @JvmStatic
