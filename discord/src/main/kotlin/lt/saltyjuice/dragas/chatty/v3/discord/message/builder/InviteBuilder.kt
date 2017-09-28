@@ -2,8 +2,13 @@ package lt.saltyjuice.dragas.chatty.v3.discord.message.builder
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
+import lt.saltyjuice.dragas.chatty.v3.discord.message.api.Invite
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-open class InviteBuilder
+open class InviteBuilder(val channelId: String) : Builder<Invite>
 {
     @Expose
     @SerializedName("max_age")
@@ -43,5 +48,25 @@ open class InviteBuilder
     {
         this.unique = value
         return this
+    }
+
+    override fun send(): Response<Invite>
+    {
+        return Utility.discordAPI.createChannelInvite(channelId, this).execute()
+    }
+
+    override fun sendAsync(callback: Callback<Invite>)
+    {
+        Utility.discordAPI.createChannelInvite(channelId, this).enqueue(this)
+    }
+
+    override fun onFailure(call: Call<Invite>, t: Throwable)
+    {
+        t.printStackTrace(System.err)
+    }
+
+    override fun onResponse(call: Call<Invite>, response: Response<Invite>)
+    {
+
     }
 }
