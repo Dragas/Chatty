@@ -14,4 +14,8 @@ object Settings
     val MAX_EMBED_CONTENT_LENGTH: Int = 6000
     val USERNAME_MIN_LENGTH: Int = 2
     val USERNAME_MAX_LENGTH: Int = 32
+    val INVALID_USERNAME_CHARACTERS: String = "@#;`"
+    val INVALID_USERNAME_REGEX: Regex = Regex("[$INVALID_USERNAME_CHARACTERS]")
+    val VALID_IMAGE_TYPES_RAW: String = "(gif|jpeg|png|jpg)"
+    val VALID_IMAGE_TYPES: Regex = Regex(VALID_IMAGE_TYPES_RAW)
 }
