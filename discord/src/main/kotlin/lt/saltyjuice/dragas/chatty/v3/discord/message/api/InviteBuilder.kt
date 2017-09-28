@@ -44,33 +44,4 @@ open class InviteBuilder
         this.unique = value
         return this
     }
-
-    override fun toString(): String
-    {
-        val sb = StringBuilder()
-        sb.append("{")
-
-        if (maxAge != null)
-        {
-            sb.append("maxAge: $maxAge,")
-        }
-
-        if (maxUses != null)
-        {
-            sb.append("maxUses: $maxUses,")
-        }
-
-        if (temporary != null)
-        {
-            sb.append("temporary: $temporary,")
-        }
-
-        if (unique != null)
-        {
-            sb.append("unique: $unique")
-        }
-
-        sb.append("}")
-        return sb.toString()
-    }
 }
