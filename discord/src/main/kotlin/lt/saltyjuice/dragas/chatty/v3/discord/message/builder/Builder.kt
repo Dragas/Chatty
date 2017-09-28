@@ -22,7 +22,8 @@ interface Builder<T> : Callback<T>
     fun send(): Response<T>
 
     /**
-     * Sends this builder async, with this builder as responses callback.
+     * Sends this builder async, with this builder as responses callback. Use this if you do not care
+     * if request succeeds or not.
      */
     fun sendAsync()
     {
