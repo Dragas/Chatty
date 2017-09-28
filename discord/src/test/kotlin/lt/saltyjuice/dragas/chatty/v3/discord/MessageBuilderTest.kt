@@ -1,7 +1,7 @@
 package lt.saltyjuice.dragas.chatty.v3.discord
 
 import lt.saltyjuice.dragas.chatty.v3.discord.exception.MessageBuilderException
-import lt.saltyjuice.dragas.chatty.v3.discord.message.MessageBuilder
+import lt.saltyjuice.dragas.chatty.v3.discord.message.builder.MessageBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Embed
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.User
 import org.junit.Assert
@@ -14,12 +14,12 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class MessageBuilderTest
 {
-    private var builder: MessageBuilder = MessageBuilder()
+    private var builder: MessageBuilder = MessageBuilder("")
 
     @Before
     fun initBuilder()
     {
-        builder = MessageBuilder()
+        builder = MessageBuilder("")
     }
 
     @Test
