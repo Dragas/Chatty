@@ -48,20 +48,17 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
     override fun send(): Response<Message>
     {
         buildMessage()
+        validate()
         return if (attachment == null)
             Utility.discordAPI.createMessage(channelId, this, queryParamas).execute()
         else
             Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas).execute()
     }
 
-    override fun sendAsync()
-    {
-        buildMessage()
-        super.sendAsync()
-    }
-
     override fun sendAsync(callback: Callback<Message>)
     {
+        buildMessage()
+        validate()
         if (attachment == null)
             Utility.discordAPI.createMessage(channelId, this, queryParamas).enqueue(callback)
         else
@@ -133,7 +130,6 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
     fun message(message: String): MessageBuilder
     {
         this.content = message
-        validate()
         return this
     }
 
@@ -146,7 +142,6 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
     {
         if (isBuildingMention)
             throw MessageBuilderException("You haven't finished mentioning someone.")
-        //validate()
         if (content.isBlank())
             return message(messageBuilder.toString())
         DiscordConnectionController.cancelTyping(channelId)
@@ -298,9 +293,10 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
             throw MessageBuilderException("Content is over maximum length! Expected: ${Settings.MAX_MESSAGE_CONTENT_LENGTH}, got: ${content.length}")
         if (embedLength > Settings.MAX_EMBED_CONTENT_LENGTH)
             throw MessageBuilderException("Embed is over maximum length! Expected: ${Settings.MAX_EMBED_CONTENT_LENGTH}, got: $embedLength")
+        if (embed != null && attachment != null)
+            throw MessageBuilderException("You can't send both an embed and a file at the same time")
         validate("(@[!&]?|#|:(\\w+):)\\d+", false)
         validate("(@[!&]?|#|:(\\w+):)\\d+", true)
-
     }
 
     /**
