@@ -290,7 +290,7 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
      */
     @Synchronized
     @Throws(MessageBuilderException::class)
-    fun validate()
+    override final fun validate()
     {
         if (isBuildingMention)
             throw MessageBuilderException("Mention is being built.")
