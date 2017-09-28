@@ -1,18 +1,16 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api
 
 import lt.saltyjuice.dragas.chatty.v3.discord.enumerated.Parameter
-import lt.saltyjuice.dragas.chatty.v3.discord.message.MessageBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.message.api.AuditLog
 import lt.saltyjuice.dragas.chatty.v3.discord.message.api.Invite
-import lt.saltyjuice.dragas.chatty.v3.discord.message.api.InviteBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.message.api.InviteMetadata
+import lt.saltyjuice.dragas.chatty.v3.discord.message.builder.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelDelete
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Embed
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Message
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.User
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.GatewayInit
-import lt.saltyjuice.dragas.chatty.v3.discord.message.response.ChannelBuilder
 import retrofit2.Call
 import retrofit2.http.*
 import java.io.File
@@ -21,12 +19,15 @@ import java.io.File
  * An interface for Retrofit to generate calls for DiscordAPI.
  *
  * Note: For any maps, you should use [Parameter] for keys.
+ *
+ * You really shouldn't call any of these methods directly (even if using retrofit client generated ones). Instead
+ * use [Builder] wrappers.
  */
 interface DiscordAPI
 {
     @GET("gateway/bot")
     fun gatewayInit(): Call<GatewayInit>
-
+//---------------------------------------Invites---------------------------------------------------------
     /**
      * Returns an invite object for the given code.
      */
@@ -46,6 +47,9 @@ interface DiscordAPI
      */
     @POST("invites/{invite-code}")
     fun acceptInvite(@Path("invite-code") inviteCode: String): Call<Invite>
+//---------------------------------------Invites---------------------------------------------------------
+
+//------------------------------------Guild audit logs---------------------------------------------------
 
     /**
      * Returns an [AuditLog] object for the guild. Requires the 'VIEW_AUDIT_LOG' permission.
@@ -58,7 +62,9 @@ interface DiscordAPI
      */
     @GET("guilds/{guild-id}/audit-logs")
     fun getGuildAuditLog(@Path("guild-id") guildId: String): Call<AuditLog>
+//------------------------------------Guild audit logs---------------------------------------------------
 
+//----------------------------------------Channel--------------------------------------------------------
     /**
      * Get a channel by ID. Returns a guild channel or dm channel object.
      */
@@ -351,16 +357,18 @@ interface DiscordAPI
      */
     @DELETE("channels/{channel-id}/recipients/{user-id}")
     fun removeGroupDMRecipient(@Path("channel-id") channelId: String, @Path("user-id") userId: String): Call<Any>
+//------------------------------------------------------Channel--------------------------------------------------
 
+//-------------------------------------------------------User----------------------------------------------------
     /**
-     * Returns a user object for a given user ID.
+     * Returns a [User] object for a given user ID.
      */
     @GET("users/{user-id}")
     fun getUser(@Path("user-id") userId: String): Call<User>
 
 
     /**
-     * Returns the user object of the requester's account. For OAuth2, this requires the identify scope,
+     * Returns the [User] object of the requester's account. For OAuth2, this requires the identify scope,
      * which will return the object without an email, and optionally the email scope,
      * which returns the object with an email.
      */
@@ -368,8 +376,29 @@ interface DiscordAPI
     fun getUser(): Call<User>
 
     /**
+     * Modify the requester's [User] account settings. Returns a [User] object on success.
+     *
+     * @param imageType image type header which is passed along the base 64 encoded image data.
+     * Implementations should handle that the parameter would be either image/gif, image/jpeg or image/png.
+     * @param userBuilder builder which contains user data that's going to overwrite the current user's data
+     */
+    @PATCH("users/@me")
+    fun modifyCurrentUser(@Header("Content-Type") imageType: String, @Body userBuilder: UserBuilder): Call<User>
+
+
+    /**
+     * Modify the requester's [User] account settings. Returns a [User] object on success.
+     *
+     * @param userBuilder builder which contains user data that's going to overwrite the current user's data
+     */
+    @PATCH("users/@me")
+    fun modifyCurrentUser(@Body userBuilder: UserBuilder): Call<User>
+
+    /**
      * Create a new DM channel with a user. Returns a DM channel object.
      */
     @POST("users/@me/channels")
-    fun createChannel(@Body channelBuilder: ChannelBuilder): Call<Channel>
+    fun createChannel(@Body channelBuilder: PrivateChannelBuilder): Call<Channel>
+
+
 }
