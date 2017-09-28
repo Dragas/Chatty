@@ -12,4 +12,6 @@ object Settings
     val FIELD_LIMIT: Int = 25
     val MAX_MESSAGE_CONTENT_LENGTH: Int = 2000
     val MAX_EMBED_CONTENT_LENGTH: Int = 6000
+    val USERNAME_MIN_LENGTH: Int = 2
+    val USERNAME_MAX_LENGTH: Int = 32
 }
