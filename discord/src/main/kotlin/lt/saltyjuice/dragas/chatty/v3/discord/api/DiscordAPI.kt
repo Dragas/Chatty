@@ -1,18 +1,13 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api
 
 import lt.saltyjuice.dragas.chatty.v3.discord.enumerated.Parameter
-import lt.saltyjuice.dragas.chatty.v3.discord.message.api.AuditLog
-import lt.saltyjuice.dragas.chatty.v3.discord.message.api.Invite
-import lt.saltyjuice.dragas.chatty.v3.discord.message.api.InviteMetadata
 import lt.saltyjuice.dragas.chatty.v3.discord.message.builder.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelDelete
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Embed
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Message
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.User
+import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.GatewayInit
 import retrofit2.Call
 import retrofit2.http.*
+import retrofit2.http.Field
 import java.io.File
 
 /**
@@ -400,5 +395,9 @@ interface DiscordAPI
     @POST("users/@me/channels")
     fun createChannel(@Body channelBuilder: PrivateChannelBuilder): Call<Channel>
 
-
+    /**
+     * Create a new group DM channel with multiple users. Returns a DM channel object.
+     */
+    @POST("users/@me/channels")
+    fun createGroupChannel(@Body channelBuilder: PrivateGroupChannelBuilder): Call<Channel>
 }
