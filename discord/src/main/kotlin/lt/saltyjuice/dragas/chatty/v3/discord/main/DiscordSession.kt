@@ -24,26 +24,14 @@ open class DiscordSession(private val session: Session)
     protected open lateinit var job: Job
     protected open lateinit var identifyWrapper: Identify
     protected open var hello: Hello? = null
-    protected open var initialized = false
     protected open val maxBeats = 3
+    @get:Synchronized
+    @set:Synchronized
     protected open var lastAck: Date? = null
-        @Synchronized
-        get()
-        {
-            return field
-        }
-        @Synchronized
-        set(it)
-        {
-            field = it
-        }
     protected var ready: Ready? = null
+    @set:Synchronized
     protected var sequenceNumber: Long? = null
-        @Synchronized
-        set(it)
-        {
-            field = it
-        }
+    protected var resumable = true
 
     open fun init(request: Hello)
     {
@@ -84,22 +72,8 @@ open class DiscordSession(private val session: Session)
 
     open fun onGatewayInvalid(request: GatewayInvalid)
     {
-        if (request.data!!)
-            attemptResume()
-        else
-            stop()
-    }
-
-    open fun attemptResume()
-    {
-        val resume = Resume().apply()
-        {
-            this.token = Settings.token
-            this.session = ready!!.sessionId
-            this.sequenceNumber = getSequence()
-        }
-        val gwrm = GatewayResume(resume)
-        session.asyncRemote.sendObject(gwrm)
+        this.resumable = request.data!!
+        stop()
     }
 
     open fun onHello(request: GatewayHello)
@@ -129,7 +103,15 @@ open class DiscordSession(private val session: Session)
 
     open fun identify(identify: Identify)
     {
-        val gatewayIdentify = GatewayIdentify(identify)
+
+        val gatewayIdentify = if (identify is Resume)
+        {
+            GatewayResume(identify)
+        }
+        else
+        {
+            GatewayIdentify(identify)
+        }
         session.asyncRemote.sendObject(gatewayIdentify)
     }
 
@@ -146,11 +128,6 @@ open class DiscordSession(private val session: Session)
     open fun getShard(): Int
     {
         return identifyWrapper.shard[0]
-    }
-
-    open fun isInitialized(): Boolean
-    {
-        return initialized
     }
 
     open fun heartBeat()
@@ -172,22 +149,46 @@ open class DiscordSession(private val session: Session)
         job.cancel()
     }
 
+    open fun getResume(): Resume
+    {
+        return Resume().apply()
+        {
+            this.token = identifyWrapper.token
+            this.sequenceNumber = sequenceNumber
+            this.session = ready?.sessionId ?: ""
+        }
+    }
+
+    open fun isResumable(): Boolean
+    {
+        return resumable
+    }
+
     companion object
     {
         private val identifyChannel = Channel<Identify>(10)
 
+        @JvmStatic
         fun createShard(shard: Int, shardsMax: Int)
         {
-            launch(CommonPool)
+            launch(CommonPool) { identifyChannel.send((createIdentify(shard, shardsMax))) }
+        }
+
+        @JvmStatic
+        fun createIdentify(shard: Int, shardsMax: Int): Identify
+        {
+            return Identify().apply()
             {
-                Identify().apply()
-                {
-                    this.shard = arrayListOf(shard, shardsMax)
-                    token = Settings.token
-                    threshold = Settings.MEMBER_THRESHOLD
-                    identifyChannel.send(this)
-                }
+                this.shard = arrayListOf(shard, shardsMax)
+                token = Settings.token
+                threshold = Settings.MEMBER_THRESHOLD
             }
+        }
+
+        @JvmStatic
+        fun resume(resume: Resume)
+        {
+            launch(CommonPool) { identifyChannel.send(resume) }
         }
     }
 }

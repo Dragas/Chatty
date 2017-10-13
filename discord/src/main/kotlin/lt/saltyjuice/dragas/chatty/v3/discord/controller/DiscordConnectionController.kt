@@ -4,134 +4,126 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import lt.saltyjuice.dragas.chatty.v3.core.event.Event
-import lt.saltyjuice.dragas.chatty.v3.core.route.On
 import lt.saltyjuice.dragas.chatty.v3.discord.Settings
-import lt.saltyjuice.dragas.chatty.v3.discord.adapter.CompressedDiscordAdapter
-import lt.saltyjuice.dragas.chatty.v3.discord.adapter.DiscordAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.main.DiscordSession
 import lt.saltyjuice.dragas.chatty.v3.discord.message.builder.MessageBuilder
-import lt.saltyjuice.dragas.chatty.v3.discord.message.event.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
-import lt.saltyjuice.dragas.chatty.v3.discord.message.request.OPRequest
-import lt.saltyjuice.dragas.chatty.v3.websocket.controller.WebsocketConnectionController
-import lt.saltyjuice.dragas.chatty.v3.websocket.event.WebSocketResponseEvent
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.net.URI
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
-import javax.websocket.ClientEndpointConfig
 import javax.websocket.CloseReason
 import javax.websocket.EndpointConfig
 import javax.websocket.Session
 import kotlinx.coroutines.experimental.channels.Channel as CoroutinesChannel
 
-open class DiscordConnectionController : WebsocketConnectionController<OPRequest<*>>()
+open class DiscordConnectionController : AbstractDiscordConnectionController()
 {
-    override val baseClass: Class<OPRequest<*>> = OPRequest::class.java
-    protected val shards = AtomicInteger(1)
-
-    protected open fun createShard(shard: Int)
+    override fun onGuildUpdate(request: Guild)
     {
-        DiscordSession.createShard(shard, shards.get())
+
     }
 
-    @On(EventGuildCreate::class)
-    fun handleGuildCreate(request: CreatedGuild)
+    override fun onChannelDelete(request: Channel)
     {
-        onGuildCreate(request)
+        channels.remove(request.id)
+        guilds[request.guildId]?.channels?.removeIf { it.id == request.id }
     }
 
-    open fun onGuildCreate(request: CreatedGuild)
+    override fun onGuildMemberBanRemove(request: GuildBan)
+    {
+
+    }
+
+    override fun onGuildMemberBanAdd(request: GuildBan)
+    {
+        if (request.id == getCurrentUserId())
+        {
+            guilds.remove(request.guildId)
+        }
+        else
+        {
+            guilds[request.guildId]?.users?.removeIf { request.id == it.user.id }
+        }
+    }
+
+    override fun onGuildIntegrationsUpdate(request: GuildIntegrationUpdate)
+    {
+
+    }
+
+    override fun onGuildRoleCreate(request: RoleChanged)
+    {
+        guilds[request.guildId]?.roles?.add(request.role)
+    }
+
+    override fun onGuildRoleUpdate(request: RoleChanged)
+    {
+        onGuildRoleDelete(RoleDeleted().apply { guildId = request.guildId; roleId = request.role.id })
+        onGuildRoleCreate(request)
+    }
+
+    override fun onGuildRoleDelete(request: RoleDeleted)
+    {
+        guilds[request.guildId]?.roles?.removeIf { it.id == request.roleId }
+    }
+
+    override fun onGuildCreate(request: CreatedGuild)
     {
         guilds[request.id] = request
-        request.channels.forEach {
+        request.channels.forEach()
+        {
             channels[it.id] = it
             it.guildId = request.id
         }
     }
 
-    @On(EventChannelCreate::class)
-    fun handleChannelCreate(request: Channel)
+    override fun onGuildMemberChunk(request: MemberChunk)
     {
-        onChannelCreate(request)
+        request.members.map()
+        {
+            val json = Utility.gson.toJson(it)
+            val changedMember = Utility.gson.fromJson<ChangedMember>(json, ChangedMember::class.java)
+            changedMember.guildId = request.guildId
+            changedMember
+        }.forEach(this::onMemberUpdate)
     }
 
-    open fun onChannelCreate(request: Channel)
+    override fun onGuildDelete(request: UnavailableGuild)
+    {
+        if (request.unavailable == null)
+        {
+            guilds.remove(request.id)
+        }
+    }
+
+    override fun onChannelCreate(request: Channel)
     {
         channels[request.id] = request
+        guilds[request.guildId]?.channels?.add(request)
     }
 
-    @On(EventGuildMemberAdd::class)
-    fun handleGuildMemberAdd(request: ChangedMember)
+    override fun onMemberAdd(request: ChangedMember)
     {
-        onMemberAdd(request)
+        guilds[request.guildId]?.users?.add(request)
     }
 
-    open fun onMemberAdd(request: ChangedMember)
-    {
-        val guild = guilds[request.guildId]!!
-        guild.users.add(request)
-    }
-
-    @On(EventReady::class)
-    fun handleEventReady(request: Ready)
-    {
-        onReady(request)
-    }
-
-    open fun onReady(request: Ready)
+    override fun onReady(request: Ready)
     {
         readyEvent = request
     }
 
-    @On(EventGuildMemberUpdate::class)
-    fun handleGuildMemberUpdate(request: ChangedMember)
-    {
-        onMemberUpdate(request)
-    }
-
-    open fun onMemberUpdate(request: ChangedMember)
+    override fun onMemberUpdate(request: ChangedMember)
     {
         onMemberRemove(request)
         onMemberAdd(request)
     }
 
-    @On(EventGuildMemberRemove::class)
-    fun handleGuildMemberRemove(request: ChangedMember)
-    {
-        onMemberRemove(request)
-    }
-
-    open fun onMemberRemove(request: ChangedMember)
+    override fun onMemberRemove(request: ChangedMember)
     {
         guilds[request.guildId]?.users?.removeIf { it.user.id == request.user.id }
-    }
-
-
-    override fun getEventWrapper(request: Any): Event
-    {
-        return request as? OPRequest<*> ?: WebSocketResponseEvent(request)
-    }
-
-    override fun onBeforeConnect(cec: ClientEndpointConfig.Builder)
-    {
-        val gatewayResponse = Utility.discordAPI.gatewayInit().execute().body()!!
-        uri = URI.create("${gatewayResponse.url}/?v=${Settings.API_VERSION}&encoding=${Settings.API_ENCODING}")
-        shards.set(gatewayResponse.shards)
-        cec
-                .decoders(listOf(DiscordAdapter::class.java, CompressedDiscordAdapter::class.java))
-                .encoders(listOf(DiscordAdapter::class.java))
-        repeat(gatewayResponse.shards)
-        { shard ->
-            createShard(shard)
-            if (shard != 0)
-                onConnectionInit()
-        }
     }
 
 
@@ -148,9 +140,18 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
         sessions.find { it.isThisShard(session) }?.apply()
         {
             sessions.remove(this)
+            stop()
             val shard = getShard()
             System.err.println("Attempting to reconnect to shard #$shard")
-            DiscordSession.createShard(shard, shards.get())
+            if (isResumable())
+            {
+                resumeShard(getResume())
+            }
+            else
+            {
+                System.err.println("Unable to reconnect to shard #$shard. Recreating it.")
+                createShard(shard)
+            }
             onConnectionInit()
         }
     }
@@ -202,6 +203,20 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
             return readyEvent?.user
         }
 
+        /**
+         * Returns a user member by channel and user id. Since Members belong to guilds and channels also belong to guilds,
+         * it makes sense to look for them from particular message that was sent in particular channel. Also same user
+         * can be connected to multiple guilds, where this particular bot is, thus to pinpoint actual member channel
+         * filtering is necessary.
+         *
+         * If a member is unavailable (not in cache), this method blocks current thread with a network call
+         * to Discord API requests that particular member
+         *
+         * @param channelId id where the message had happened
+         * @param userId user id
+         * @return Member object from cache, if available. Otherwise a thread is blocked with a network call.
+         */
+
         @JvmStatic
         @Synchronized
         public fun getUser(channelId: String, userId: String): Member?
@@ -231,8 +246,9 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
 
             return member
         }
+
         @JvmStatic
-        private val guilds: ConcurrentHashMap<String, CreatedGuild> = ConcurrentHashMap<String, CreatedGuild>()
+        private val guilds: ConcurrentHashMap<String, CreatedGuild> = ConcurrentHashMap()
 
         @JvmStatic
         private val channels: ConcurrentHashMap<String, Channel> = ConcurrentHashMap()
@@ -257,7 +273,7 @@ open class DiscordConnectionController : WebsocketConnectionController<OPRequest
                 while (true)
                 {
                     Utility.discordAPI.triggerTypingIndicator(channelId).enqueue(callback)
-                    delay(10000)
+                    delay(Settings.TYPING_DELAY)
                 }
             }
         }
