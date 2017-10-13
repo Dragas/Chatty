@@ -3,7 +3,7 @@ package lt.saltyjuice.dragas.chatty.v3.discord.message.builder
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
-import lt.saltyjuice.dragas.chatty.v3.discord.exception.BuilderException
+import lt.saltyjuice.dragas.chatty.v3.discord.exception.PrivateChannelBuilderException
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
 import retrofit2.Call
 import retrofit2.Callback
@@ -40,7 +40,7 @@ open class PrivateGroupChannelBuilder : Builder<Channel>
         return this
     }
 
-    @Throws(IOException::class, RuntimeException::class, BuilderException::class)
+    @Throws(IOException::class, RuntimeException::class, PrivateChannelBuilderException::class)
     override fun send(): Response<Channel>
     {
         validate()
@@ -58,11 +58,12 @@ open class PrivateGroupChannelBuilder : Builder<Channel>
         Utility.discordAPI.createGroupChannel(this).enqueue(callback)
     }
 
+    @Throws(PrivateChannelBuilderException::class)
     override fun validate()
     {
         if (nickMap.size > 10)
         {
-            throw BuilderException("By default this endpoint is limited to 10 active group DMs. These limits are raised for whitelisted GameBridge applications.")
+            throw PrivateChannelBuilderException("By default this endpoint is limited to 10 active group DMs. These limits are raised for whitelisted GameBridge applications.")
         }
     }
 
