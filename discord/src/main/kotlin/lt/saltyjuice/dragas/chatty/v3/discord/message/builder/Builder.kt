@@ -16,14 +16,14 @@ import java.io.IOException
 interface Builder<T> : Callback<T>
 {
     /**
-     * Sends this builder to discord API
+     * Sends this builder to discord API. Blocks the current thread.
      */
     @Throws(IOException::class, RuntimeException::class)
     fun send(): Response<T>
 
     /**
      * Sends this builder async, with this builder as responses callback. Use this if you do not care
-     * if request succeeds or not.
+     * if request succeeds or not and do not care about the result.
      */
     fun sendAsync()
     {
