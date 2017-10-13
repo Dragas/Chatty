@@ -400,4 +400,7 @@ interface DiscordAPI
      */
     @POST("users/@me/channels")
     fun createGroupChannel(@Body channelBuilder: PrivateGroupChannelBuilder): Call<Channel>
+
+    @GET("users/@me/connections")
+    fun getUserConnections(): Call<List<Connection>>
 }
