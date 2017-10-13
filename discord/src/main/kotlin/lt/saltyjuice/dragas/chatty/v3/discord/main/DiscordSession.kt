@@ -156,7 +156,7 @@ open class DiscordSession(private val session: Session)
     open fun heartBeat()
     {
         val lastack = this.lastAck
-        if (lastack != null && Date().time.minus(lastack.time) > hello!!.heartBeatInterval.times(maxBeats))
+        if (lastack != null && Date().time.minus(lastack.time) > hello!!.heartBeatInterval.times(maxBeats) && !session.isOpen)
         {
             stop()
             return
@@ -184,7 +184,7 @@ open class DiscordSession(private val session: Session)
                 {
                     this.shard = arrayListOf(shard, shardsMax)
                     token = Settings.token
-                    threshold = 50
+                    threshold = Settings.MEMBER_THRESHOLD
                     identifyChannel.send(this)
                 }
             }

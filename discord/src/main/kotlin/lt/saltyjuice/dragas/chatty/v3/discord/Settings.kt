@@ -18,4 +18,6 @@ object Settings
     val INVALID_USERNAME_REGEX: Regex = Regex("[$INVALID_USERNAME_CHARACTERS]")
     val VALID_IMAGE_TYPES_RAW: String = "(gif|jpeg|png|jpg)"
     val VALID_IMAGE_TYPES: Regex = Regex(VALID_IMAGE_TYPES_RAW)
+    val TYPING_DELAY = 10000L
+    val MEMBER_THRESHOLD: Int = 250
 }
