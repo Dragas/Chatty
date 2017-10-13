@@ -1,9 +1,7 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.message.api
+package lt.saltyjuice.dragas.chatty.v3.discord.message.general
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Guild
 
 /**
  * Represents a code that when used, adds a user to a guild.

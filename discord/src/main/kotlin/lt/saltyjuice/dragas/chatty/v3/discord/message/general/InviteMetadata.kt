@@ -1,8 +1,7 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.message.api
+package lt.saltyjuice.dragas.chatty.v3.discord.message.general
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
-import lt.saltyjuice.dragas.chatty.v3.discord.message.general.User
 import java.util.*
 
 open class InviteMetadata

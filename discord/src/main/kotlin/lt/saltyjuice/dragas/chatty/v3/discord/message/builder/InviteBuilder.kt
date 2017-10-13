@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.exception.InviteBuilderException
-import lt.saltyjuice.dragas.chatty.v3.discord.message.api.Invite
+import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Invite
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
