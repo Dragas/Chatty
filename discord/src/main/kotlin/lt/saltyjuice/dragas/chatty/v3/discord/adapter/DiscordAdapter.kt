@@ -136,6 +136,7 @@ open class DiscordAdapter : Adapter<String, OPRequest<*>, OPResponse<*>, String>
             EventGuildRoleCreate.EVENT_NAME -> return gson.fromJson<EventGuildRoleCreate>(block, EventGuildRoleCreate::class.java)
             EventGuildRoleDelete.EVENT_NAME -> return gson.fromJson<EventGuildRoleDelete>(block, EventGuildRoleDelete::class.java)
             EventGuildRoleUpdate.EVENT_NAME -> return gson.fromJson<EventGuildRoleUpdate>(block, EventGuildRoleUpdate::class.java)
+            EventGuildUpdate.EVENT_NAME -> return gson.fromJson<EventGuildUpdate>(block, EventGuildUpdate::class.java)
             EventMessageCreate.EVENT_NAME -> return gson.fromJson<EventMessageCreate>(block, EventMessageCreate::class.java)
             EventMessageUpdate.EVENT_NAME -> return gson.fromJson<EventMessageUpdate>(block, EventMessageUpdate::class.java)
             EventMessageDelete.EVENT_NAME -> return gson.fromJson<EventMessageDelete>(block, EventMessageDelete::class.java)
