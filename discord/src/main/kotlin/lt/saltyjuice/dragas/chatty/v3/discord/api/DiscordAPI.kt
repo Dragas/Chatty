@@ -403,4 +403,15 @@ interface DiscordAPI
 
     @GET("users/@me/connections")
     fun getUserConnections(): Call<List<Connection>>
+
+//-------------------------------------------------------User----------------------------------------------------
+
+
+//------------------------------------------------------Webhook--------------------------------------------------
+
+    /**
+     * Create a new webhook. Returns a webhook object on success.
+     */
+    @POST("channels/{channel-id}/webhooks")
+    fun createWebHook(@Header("Content-Type") contentType: String, @Path("channel-id") channelId: String, builder: WebHookBuilder): Call<WebHook>
 }

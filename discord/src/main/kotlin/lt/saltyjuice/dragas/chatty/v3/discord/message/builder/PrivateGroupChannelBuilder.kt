@@ -6,9 +6,6 @@ import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.exception.PrivateChannelBuilderException
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
 import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -40,22 +37,9 @@ open class PrivateGroupChannelBuilder : Builder<Channel>
         return this
     }
 
-    @Throws(IOException::class, RuntimeException::class, PrivateChannelBuilderException::class)
-    override fun send(): Response<Channel>
+    override fun getCall(): Call<Channel>
     {
-        validate()
-        return Utility.discordAPI.createGroupChannel(this).execute()
-    }
-
-    override fun onFailure(call: Call<Channel>?, t: Throwable?)
-    {
-
-    }
-
-    override fun sendAsync(callback: Callback<Channel>)
-    {
-        validate()
-        Utility.discordAPI.createGroupChannel(this).enqueue(callback)
+        return Utility.discordAPI.createGroupChannel(this)
     }
 
     @Throws(PrivateChannelBuilderException::class)
@@ -65,10 +49,5 @@ open class PrivateGroupChannelBuilder : Builder<Channel>
         {
             throw PrivateChannelBuilderException("By default this endpoint is limited to 10 active group DMs. These limits are raised for whitelisted GameBridge applications.")
         }
-    }
-
-    override fun onResponse(call: Call<Channel>?, response: Response<Channel>?)
-    {
-
     }
 }

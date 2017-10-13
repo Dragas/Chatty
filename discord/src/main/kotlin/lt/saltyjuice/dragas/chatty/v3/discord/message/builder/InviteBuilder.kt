@@ -4,10 +4,9 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import lt.saltyjuice.dragas.chatty.v3.discord.api.Utility
 import lt.saltyjuice.dragas.chatty.v3.discord.exception.InviteBuilderException
+import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Channel
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Invite
 import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 open class InviteBuilder(val channelId: String) : Builder<Invite>
 {
@@ -26,6 +25,8 @@ open class InviteBuilder(val channelId: String) : Builder<Invite>
     @Expose
     @SerializedName("unique")
     private var unique: Boolean = false
+
+    constructor(channel: Channel) : this(channel.id)
 
     /**
      * 	duration of invite in seconds before expiry, or 0 for never
@@ -63,27 +64,12 @@ open class InviteBuilder(val channelId: String) : Builder<Invite>
         return this
     }
 
-    override fun send(): Response<Invite>
+
+    override fun getCall(): Call<Invite>
     {
-        validate()
-        return Utility.discordAPI.createChannelInvite(channelId, this).execute()
+        return Utility.discordAPI.createChannelInvite(channelId, this)
     }
 
-    override fun sendAsync(callback: Callback<Invite>)
-    {
-        validate()
-        Utility.discordAPI.createChannelInvite(channelId, this).enqueue(this)
-    }
-
-    override fun onFailure(call: Call<Invite>, t: Throwable)
-    {
-        t.printStackTrace(System.err)
-    }
-
-    override fun onResponse(call: Call<Invite>, response: Response<Invite>)
-    {
-
-    }
 
     @Throws(InviteBuilderException::class)
     override final fun validate()

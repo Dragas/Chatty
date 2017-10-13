@@ -48,21 +48,21 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
     override fun send(): Response<Message>
     {
         buildMessage()
-        validate()
-        return if (attachment == null)
-            Utility.discordAPI.createMessage(channelId, this, queryParamas).execute()
-        else
-            Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas).execute()
+        return super.send()
     }
 
     override fun sendAsync(callback: Callback<Message>)
     {
         buildMessage()
-        validate()
-        if (attachment == null)
-            Utility.discordAPI.createMessage(channelId, this, queryParamas).enqueue(callback)
+        return super.sendAsync(callback)
+    }
+
+    override fun getCall(): Call<Message>
+    {
+        return if (attachment == null)
+            Utility.discordAPI.createMessage(channelId, this, queryParamas)
         else
-            Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas).enqueue(callback)
+            Utility.discordAPI.createMessage(channelId, content, attachment!!, queryParamas)
     }
 
     /**
@@ -579,16 +579,6 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
 
     @Synchronized
     private fun getEmbedOrCreate() = this.embed ?: Embed()
-
-    override fun onResponse(call: Call<Message>, response: Response<Message>)
-    {
-
-    }
-
-    override fun onFailure(call: Call<Message>, t: Throwable)
-    {
-        t.printStackTrace(System.err)
-    }
 
     enum class MentionType(val value: String)
     {
