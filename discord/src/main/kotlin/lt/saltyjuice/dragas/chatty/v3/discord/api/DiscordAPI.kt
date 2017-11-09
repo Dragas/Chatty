@@ -413,5 +413,37 @@ interface DiscordAPI
      * Create a new webhook. Returns a webhook object on success.
      */
     @POST("channels/{channel-id}/webhooks")
-    fun createWebHook(@Header("Content-Type") contentType: String, @Path("channel-id") channelId: String, builder: WebHookBuilder): Call<WebHook>
+    fun createWebHook(@Header("Content-Type") contentType: String, @Path("channel-id") channelId: String, @Body builder: WebHookBuilder): Call<WebHook>
+
+    /**
+     * Returns a list of channel [WebHook] objects.
+     */
+    @GET("channels/{channel-id}/webhooks")
+    fun getWebhooksForChannel(@Path("channel-id") channelId: String): Call<List<WebHook>>
+
+    /**
+     * Returns a list of guild [WebHook] objects.
+     */
+    @GET("guilds/{guild-id}/webhooks")
+    fun getWebhooksForGuild(@Path("guild-id") guildId: String): Call<List<WebHook>>
+
+    /**
+     * Returns a particular [WebHook] object for the given id.
+     */
+    @GET("webhooks/{webhook-id}")
+    fun getWebhook(@Path("webhook-id") webhookId: String): Call<List<WebHook>>
+
+    /**
+     * Modifies a [WebHook]. Returns the updated [WebHook] object on success. Note. All parameters are optional in builder.
+     */
+    @PATCH("webhooks/{webhook-id}")
+    fun modifyWebhook(@Header("Content-Type") contentType: String, @Path("webhook-id") webhookId: String, @Body builder: WebHookBuilder): Call<WebHook>
+
+    /**
+     * Delete a [WebHook] permanently. User must be owner. Returns a 204 NO CONTENT response on success.
+     */
+    @DELETE("webhooks/{webhook-id}")
+    fun deleteWebhook(@Path("webhook-id") webhookId: String): Call<Unit>
+
+
 }
