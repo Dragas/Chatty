@@ -19,6 +19,9 @@ import javax.websocket.EndpointConfig
 import javax.websocket.Session
 import kotlinx.coroutines.experimental.channels.Channel as CoroutinesChannel
 
+/**
+ * Provides routes for Discord connection.
+ */
 open class DiscordConnectionController : AbstractDiscordConnectionController()
 {
     override fun onGuildUpdate(request: Guild)
@@ -159,7 +162,7 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
     companion object
     {
         @JvmStatic
-        private val sessions = Collections.synchronizedList(ArrayList<DiscordSession>())
+        protected val sessions = Collections.synchronizedList(ArrayList<DiscordSession>())
 
         @JvmStatic
         @Volatile
@@ -242,22 +245,20 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
                 return null
             }
 
-
-
             return member
         }
 
         @JvmStatic
-        private val guilds: ConcurrentHashMap<String, CreatedGuild> = ConcurrentHashMap()
+        protected val guilds: ConcurrentHashMap<String, CreatedGuild> = ConcurrentHashMap()
 
         @JvmStatic
-        private val channels: ConcurrentHashMap<String, Channel> = ConcurrentHashMap()
+        protected val channels: ConcurrentHashMap<String, Channel> = ConcurrentHashMap()
 
         @JvmStatic
-        private val typingMap: ConcurrentHashMap<String, Job> = ConcurrentHashMap()
+        protected val typingMap: ConcurrentHashMap<String, Job> = ConcurrentHashMap()
 
         @JvmStatic
-        private val debugChannel = System.getenv("debug_channel_id")
+        protected val debugChannel = System.getenv("debug_channel_id")
 
         /**
          * Starts typing to particular channel.
@@ -291,16 +292,16 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
         @JvmStatic
         @get:Synchronized
         val emptyCallback: Callback<Any> = object : Callback<Any>
+        {
+            override fun onFailure(call: Call<Any>, t: Throwable)
             {
-                override fun onFailure(call: Call<Any>, t: Throwable)
-                {
-                    t.printStackTrace(System.err)
-                }
-
-                override fun onResponse(call: Call<Any>, response: Response<Any>)
-                {
-                    //println("response is successful: ${response.isSuccessful}")
-                }
+                t.printStackTrace(System.err)
             }
+
+            override fun onResponse(call: Call<Any>, response: Response<Any>)
+            {
+                //println("response is successful: ${response.isSuccessful}")
+            }
+        }
     }
 }
