@@ -1,3 +1,18 @@
+## [0.5.0-SNAPSHOT]
+
+### Added
+
+- Added webhook APIs.
+- Added Apache/Tika (core) to validate images for avatar builder. 
+
+### Changes
+
+- Refactored Sharding.
+  - Previously `chatty-discord` would not attempt to resume shards when disconnecting from them as well as send "Identify"
+calls every time it reconnected.
+  - Also DiscordSession now properly disconnects when receiving OP 7 request code.
+- Minor changes to rate limiter.
+
 ## [0.4.3-SNAPSHOT]
 
 ### Fixed
