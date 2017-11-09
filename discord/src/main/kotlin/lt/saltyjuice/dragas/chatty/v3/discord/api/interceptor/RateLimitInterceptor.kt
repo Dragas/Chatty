@@ -11,7 +11,12 @@ import okhttp3.Response
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-class RateLimitInterceptor : Interceptor
+/**
+ * Permits Rate limiting in discord based applications
+ *
+ * @param shouldWait indicates whether or not the interceptor should throw an exception when rate limit is hit
+ */
+open class RateLimitInterceptor @JvmOverloads constructor(protected open val shouldWait: Boolean = false) : Interceptor
 {
     @Throws(RateLimitException::class)
     override fun intercept(chain: Interceptor.Chain): Response
@@ -38,7 +43,7 @@ class RateLimitInterceptor : Interceptor
         var limit = map[identifier]
         if (limit == null)
         {
-            limit = Channel(1000)
+            limit = Channel(10)
             map[identifier] = limit
         }
         else
@@ -62,8 +67,15 @@ class RateLimitInterceptor : Interceptor
         return response
     }
 
-    private fun waitForLimit(limit: Limit)
+    /**
+     * Waits for limit to pass, if the interceptor is meant to wait. Otherwise, throws [RateLimitException]
+     * @throws RateLimitException when limit hasn't expired.
+     */
+    @Throws(RateLimitException::class)
+    protected open fun waitForLimit(limit: Limit)
     {
+        if (limit.isExpired)
+            return
         if (shouldWait)
             limit.delayUntilReset()
         else
@@ -73,58 +85,58 @@ class RateLimitInterceptor : Interceptor
     companion object
     {
         @JvmStatic
-        val X_RATELIMIT_GLOBAL = "X-RateLimit-Global"
-        @JvmStatic
-        val X_RATELIMIT_LIMIT = "X-RateLimit-Limit"
-        @JvmStatic
-        val X_RATELIMIT_REMAINING = "X-RateLimit-REMAINING"
-        @JvmStatic
-        val X_RATELIMIT_RESET = "X-RateLimit-RESET"
+        protected val CHANNELS = "channels"
 
         @JvmStatic
-        val CHANNELS = "channels"
+        protected val GUILD = "guilds"
 
         @JvmStatic
-        val GUILD = "guilds"
+        protected val limitsPerGuild: ConcurrentHashMap<String, Channel<Limit>> = ConcurrentHashMap()
 
         @JvmStatic
-        private val limitsPerGuild: ConcurrentHashMap<String, Channel<Limit>> = ConcurrentHashMap()
+        protected val limitsPerChannel: ConcurrentHashMap<String, Channel<Limit>> = ConcurrentHashMap()
 
         @JvmStatic
-        private val limitsPerChannel: ConcurrentHashMap<String, Channel<Limit>> = ConcurrentHashMap()
-
-        @JvmStatic
-        private val globalLimits: ConcurrentHashMap<String, Channel<Limit>> = ConcurrentHashMap()
-
-
-        /**
-         * Sets whether or not the application should wait for rate limits to pass before sending a request.
-         */
-        @JvmStatic
-        @get:Synchronized
-        @set:Synchronized
-        var shouldWait: Boolean = false
+        protected val globalLimits: ConcurrentHashMap<String, Channel<Limit>> = ConcurrentHashMap()
     }
 
-    private class Limit(response: Response)
+    open class Limit(response: Response)
     {
-        val global: Boolean? = response.header(X_RATELIMIT_GLOBAL)?.toBoolean()
-        val limit: Int? = response.header(X_RATELIMIT_LIMIT)?.toInt()
-        val remaining: Int? = response.header(X_RATELIMIT_REMAINING)?.toInt()
-        var reset: Long? = response.header(X_RATELIMIT_RESET)?.toLong()
+        open val global: Boolean? = response.header(X_RATELIMIT_GLOBAL)?.toBoolean()
+        open val limit: Int? = response.header(X_RATELIMIT_LIMIT)?.toInt()
+        open val remaining: Int? = response.header(X_RATELIMIT_REMAINING)?.toInt()
+        open var reset: Long? = response.header(X_RATELIMIT_RESET)?.toLong()
+        open val isExpired: Boolean
+            get()
+            {
+                return getDelay() <= 0
+            }
 
-        fun getDelay(): Long
+        open fun getDelay(): Long
         {
             val reset = this@Limit.reset ?: throw NullPointerException("Reset epoch was not specified")
-            val time = Date().time / 1000 - reset
+            val time = Date().time.div(1000).minus(reset)
             return time
         }
 
-        fun delayUntilReset() = runBlocking<Unit>()
+        open fun delayUntilReset() = runBlocking<Unit>()
         {
+            if (isExpired)
+                return@runBlocking
             val time = getDelay()
-            if (time > 0)
-                delay(time)
+            delay(time)
+        }
+
+        companion object
+        {
+            @JvmStatic
+            protected val X_RATELIMIT_GLOBAL = "X-RateLimit-Global"
+            @JvmStatic
+            protected val X_RATELIMIT_LIMIT = "X-RateLimit-Limit"
+            @JvmStatic
+            protected val X_RATELIMIT_REMAINING = "X-RateLimit-REMAINING"
+            @JvmStatic
+            protected val X_RATELIMIT_RESET = "X-RateLimit-RESET"
         }
     }
 }
