@@ -103,7 +103,7 @@ object Utility
         {
             addInterceptor(CommonInterceptor())
             addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            addInterceptor(RateLimitInterceptor())
+            addInterceptor(RateLimitInterceptor(true))
         }
     }
 
