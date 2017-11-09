@@ -101,17 +101,9 @@ class RateLimitInterceptor : Interceptor
          * Sets whether or not the application should wait for rate limits to pass before sending a request.
          */
         @JvmStatic
+        @get:Synchronized
+        @set:Synchronized
         var shouldWait: Boolean = false
-            @Synchronized
-            get()
-            {
-                return field
-            }
-            @Synchronized
-            set(value)
-            {
-                field = value
-            }
     }
 
     private class Limit(response: Response)
