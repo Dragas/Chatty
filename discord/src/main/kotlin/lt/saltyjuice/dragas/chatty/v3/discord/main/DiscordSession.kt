@@ -88,7 +88,8 @@ open class DiscordSession(private val session: Session)
 
     open fun onReconnect(request: GatewayReconnect)
     {
-
+        stop()
+        session.close()
     }
 
     open fun onReady(request: EventReady)
