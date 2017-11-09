@@ -49,14 +49,4 @@ open class UserBuilder : AvatarBuilder(), Builder<User>
         this.username = this.username!!.replace(Regex("^\\s+"), "")
         this.username = this.username!!.replace(Regex("\\s+$"), "")
     }
-
-    private fun validateImage()
-    {
-        val avatar = this.getAvatar() ?: return
-        if (!getImageType().startsWith("image", true))
-            throw UserBuilderException("Avatars should be images. Got ${getImageType()}")
-        if (!getImageType().contains(Settings.VALID_IMAGE_TYPES))
-            throw UserBuilderException("Invalid image type. Expected: ${Settings.VALID_IMAGE_TYPES_RAW}, got ${getImageType()}")
-
-    }
 }

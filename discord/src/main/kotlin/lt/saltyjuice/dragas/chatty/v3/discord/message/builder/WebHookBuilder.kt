@@ -31,6 +31,7 @@ open class WebHookBuilder(private val channelId: String) : AvatarBuilder(), Buil
 
     override fun validate()
     {
+        super.validate()
         if (!(Settings.USERNAME_MIN_LENGTH..Settings.USERNAME_MAX_LENGTH).contains(name.length))
             throw BuilderException("Permitted webhook name length is between ${Settings.USERNAME_MIN_LENGTH} and ${Settings.USERNAME_MAX_LENGTH}. Got ${name.length}")
     }

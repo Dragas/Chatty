@@ -20,4 +20,5 @@ object Settings
     val VALID_IMAGE_TYPES: Regex = Regex(VALID_IMAGE_TYPES_RAW)
     val TYPING_DELAY = 10000L
     val MEMBER_THRESHOLD: Int = 250
+    val MAX_IMAGE_SIZE: Long = 8 * 1024 * 1024
 }
