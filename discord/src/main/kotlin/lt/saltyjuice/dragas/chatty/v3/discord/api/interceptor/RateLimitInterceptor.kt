@@ -38,7 +38,7 @@ class RateLimitInterceptor : Interceptor
         var limit = map[identifier]
         if (limit == null)
         {
-            limit = Channel(Channel.UNLIMITED)
+            limit = Channel(1000)
             map[identifier] = limit
         }
         else
