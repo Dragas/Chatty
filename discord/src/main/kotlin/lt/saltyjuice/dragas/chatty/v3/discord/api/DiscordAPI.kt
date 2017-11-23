@@ -458,4 +458,38 @@ interface DiscordAPI
      */
     @DELETE("guilds/{guild-id}/emojis/{emoji-id}")
     fun deleteGuildEmoji(@Path("guild-id") guildId: String, @Path("emoji-id") emojiId: String): Call<Unit>
+
+//-------------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------Guild--------------------------------------------------
+
+    /**
+     * Returns the [Guild] object for the given id.
+     */
+    @GET("guilds/{guild-id}")
+    fun getGuild(@Path("guild-id") guildId: String): Call<Guild>
+
+    /**
+     * Returns a list of guild [Channel] objects.
+     */
+    @GET("guilds/{guild-id}/channels")
+    fun getGuildChannels(@Path("guild-id") guildId: String): Call<List<Channel>>
+
+    /**
+     * Returns a list of members for particular guild.
+     *
+     * @param limit an integer between 1 and 1000
+     * @param after a snowflake of smallest user id, not included
+     */
+    @GET("guilds/{guild-id}/members")
+    fun getGuildMembers(@Path("guild-id") guildId: String, @Query("limit") limit: Int, @Query("after") after: String): Call<List<Member>>
+
+    /**
+     * Returns a member object for the specified user.
+     */
+    @GET("guilds/{guild-id}/members/{user-id}")
+    fun getGuildMember(@Path("guild-id") guildId: String, @Path("user-id") userId: String): Call<Member>
+
+    /*@PATCH("guilds/{guild-id}/members/{user-id}")
+    fun modifyMemberRoles(@Path("guild-id") guildId: String, @Path("user-id") userId: String, @Part)*/
 }
