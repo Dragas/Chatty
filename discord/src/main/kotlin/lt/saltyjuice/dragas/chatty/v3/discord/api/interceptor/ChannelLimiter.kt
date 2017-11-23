@@ -18,7 +18,7 @@ abstract class ChannelLimiter : AbstractRateLimitInterceptor()
         val subtypeSegment = getSubtypeSegmentNumber()
         val subType = url[subtypeSegment]
         val method = request.method()
-        return getRequiredMethod().contains(method) && globalType == PER_CHANNEL && subType == getRequiredSubtype()
+        return getRequiredMethod().contains(method) && globalType == getGlobalType() && subType == getRequiredSubtype()
     }
 
     override fun isLimited(request: Request, limit: Limit): Boolean
@@ -26,6 +26,11 @@ abstract class ChannelLimiter : AbstractRateLimitInterceptor()
         val delay = limit.getDelay()
         val remaining = limit.remaining ?: 1
         return remaining < 1 && delay > 0
+    }
+
+    open fun getGlobalType(): String
+    {
+        return PER_CHANNEL
     }
 
     override fun waitForLimit(limit: Limit)
