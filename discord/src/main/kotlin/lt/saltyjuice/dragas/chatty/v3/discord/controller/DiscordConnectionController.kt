@@ -1,7 +1,7 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.controller
 
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import lt.saltyjuice.dragas.chatty.v3.discord.Settings
@@ -224,7 +224,7 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
         @Synchronized
         public fun getUser(channelId: String, userId: String): Member?
         {
-            if (userId.isEmpty())
+            if (userId.isBlank())
                 return null
             val channel = channels[channelId]
             if (channel == null)
@@ -266,10 +266,10 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
         @JvmOverloads
         @JvmStatic
         @Synchronized
-        fun startTyping(channelId: String, callback: Callback<Any> = emptyCallback)
+        fun startTyping(channelId: String, callback: Callback<Unit> = emptyCallback)
         {
             cancelTyping(channelId)
-            typingMap[channelId] = launch(CommonPool)
+            typingMap[channelId] = launch(Unconfined)
             {
                 while (true)
                 {
@@ -291,14 +291,14 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
 
         @JvmStatic
         @get:Synchronized
-        val emptyCallback: Callback<Any> = object : Callback<Any>
+        val emptyCallback: Callback<Unit> = object : Callback<Unit>
         {
-            override fun onFailure(call: Call<Any>, t: Throwable)
+            override fun onFailure(call: Call<Unit>, t: Throwable)
             {
                 t.printStackTrace(System.err)
             }
 
-            override fun onResponse(call: Call<Any>, response: Response<Any>)
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>)
             {
                 //println("response is successful: ${response.isSuccessful}")
             }
