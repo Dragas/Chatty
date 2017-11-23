@@ -13,8 +13,10 @@ import java.util.*
  */
 abstract class AbstractRateLimitInterceptor : Interceptor
 {
+    /**
+     * Denotes if this ratelimiter should wait for limit to elapse. Otherwise a [RateLimitException] is thrown
+     */
     protected open val shouldWaitForLimit = true
-    protected open val shouldRepeatRequest = true
 
     @Synchronized
     final override fun intercept(chain: Interceptor.Chain): Response
@@ -27,13 +29,9 @@ abstract class AbstractRateLimitInterceptor : Interceptor
         {
             if (shouldWaitForLimit)
                 waitForLimit(limit)
-            else
-                throw RateLimitException("Rate limit exceeded for url ${request.url()}. You will be able to call this in ${getTimeSinceLastRequest(limit)} ms")
         }
         val response = chain.proceed(request)
         storeLimit(response)
-        if (response.code() == 429 && shouldRepeatRequest)
-            return intercept(chain)
         return response
     }
 
