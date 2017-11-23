@@ -238,11 +238,15 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
                 MessageBuilder(debugChannel).append("Warning: channel with id ${channel.id} doesn't correspond to any guild.").send()
                 return null
             }
-            val member = guild.users.find { it.user.id == userId }
+            var member = guild.users.find { it.user.id == userId }
             if (member == null)
             {
-                MessageBuilder(debugChannel).append("Warning: user with id $userId doesn't correspond to any member.").send()
-                return null
+                val result = Utility.discordAPI.getGuildMember(guild.id, userId).execute()
+                if (result.isSuccessful)
+                {
+                    member = result.body()
+                    guild.users.add(member!!)
+                }
             }
 
             return member
