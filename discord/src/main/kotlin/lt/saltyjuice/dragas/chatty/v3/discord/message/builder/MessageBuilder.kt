@@ -59,10 +59,12 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
 
     override fun getCall(): Call<Message>
     {
-        return if (attachment == null)
-            Utility.discordAPI.createMessage(channelId, this)
-        else
-            Utility.discordAPI.createMessage(channelId, attachment!!)
+        return when
+        {
+            attachment != null -> Utility.discordAPI.createMessage(channelId, attachment!!)
+            embed != null -> Utility.discordAPI.createMessage(channelId, this.embed!!)
+            else -> Utility.discordAPI.createMessage(channelId, this)
+        }
     }
 
     /**
