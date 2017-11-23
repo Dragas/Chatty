@@ -1,10 +1,15 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
 
-open class MessageDeletingLimiter : MessagePostingLimiter()
+open class MessageDeletingLimiter : ChannelLimiter()
 {
-    override fun getRequiredMethod(): String
+    override fun getSegmentSize(): Int
     {
-        return "DELETE"
+        return 4
+    }
+
+    override fun getRequiredMethod(): Array<String>
+    {
+        return arrayOf("DELETE")
     }
 
     override fun getResetDelay(): Long

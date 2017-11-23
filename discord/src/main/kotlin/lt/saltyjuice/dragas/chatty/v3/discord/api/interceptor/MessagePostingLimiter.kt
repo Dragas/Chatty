@@ -1,49 +1,10 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
 
-import okhttp3.Request
-import okhttp3.Response
-import java.util.concurrent.ConcurrentHashMap
-
-open class MessagePostingLimiter : AbstractRateLimitInterceptor()
+open class MessagePostingLimiter : ChannelLimiter()
 {
-    protected val limits: ConcurrentHashMap<String, Limit> = ConcurrentHashMap()
-
-    override fun canLimit(request: Request): Boolean
+    override fun getRequiredMethod(): Array<String>
     {
-        val url = request.url().encodedPathSegments()
-        val type = url[2]
-        val method = request.method()
-        return method == getRequiredMethod() && type == PER_CHANNEL && url.size == 4
-    }
-
-    open fun getRequiredMethod(): String
-    {
-        return "POST"
-    }
-
-    override fun isLimited(request: Request, limit: Limit): Boolean
-    {
-        val delay = limit.getDelay()
-        val remaining = limit.remaining ?: 1
-        return remaining < 1 && delay > 0
-    }
-
-    override fun waitForLimit(limit: Limit)
-    {
-        limit.delayUntilReset()
-    }
-
-    override fun storeLimit(response: Response)
-    {
-        val identifier = response.request().url().encodedPathSegments()[3]
-        val limit = Limit(response)
-        limits[identifier] = limit
-    }
-
-    override fun identify(request: Request): Limit?
-    {
-        val identifier = request.url().encodedPathSegments()[3]
-        return limits[identifier]
+        return arrayOf("POST")
     }
 
     override fun getResetDelay(): Long
@@ -56,14 +17,9 @@ open class MessagePostingLimiter : AbstractRateLimitInterceptor()
         return MAX_REQUESTS
     }
 
-    override fun getTimeSinceLastRequest(limit: Limit): Long
+    override fun getSegmentSize(): Int
     {
-        return limit.getDelay()
-    }
-
-    override fun getCurrentRequestCount(limit: Limit): Int
-    {
-        return limit.limit?.minus(limit.remaining ?: 0) ?: getMaxRequests()
+        return 4
     }
 
     companion object
