@@ -13,7 +13,12 @@ open class MessagePostingLimiter : AbstractRateLimitInterceptor()
         val url = request.url().encodedPathSegments()
         val type = url[2]
         val method = request.method()
-        return method == "POST" && type == PER_CHANNEL
+        return method == getRequiredMethod() && type == PER_CHANNEL && url.size == 4
+    }
+
+    open fun getRequiredMethod(): String
+    {
+        return "POST"
     }
 
     override fun isLimited(request: Request, limit: Limit): Boolean
