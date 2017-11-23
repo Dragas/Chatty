@@ -1,5 +1,8 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
 
+/**
+ * Generifies some constants for message limiters
+ */
 abstract class MessageLimiter : ChannelLimiter()
 {
     override fun getSegmentSize(): Int
