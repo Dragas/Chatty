@@ -147,7 +147,7 @@ interface DiscordAPI
      * on how to properly format messages.
      */
     @POST("channels/{channel-id}/messages")
-    fun createMessage(@Path("channel-id") channelId: String, @Body embed: Embed): Call<Message>
+    fun createMessage(@Path("channel-id") channelId: String, @Body embed: EmbedWrapper): Call<Message>
 
 
     /**

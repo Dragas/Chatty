@@ -20,25 +20,21 @@ import java.util.*
  */
 open class MessageBuilder(val channelId: String) : Builder<Message>
 {
-    @Expose
-    @SerializedName("embed")
-    private var embed: Embed? = null
+    protected var embed: Embed? = null
 
     @Expose
     @SerializedName("content")
-    private var content: String = ""
+    protected var content: String = ""
 
-    @Expose
-    @SerializedName("attachment")
-    private var attachment: File? = null
+    protected var attachment: File? = null
 
-    private var queryParamas: MutableMap<String, String> = mutableMapOf()
+    protected var queryParamas: MutableMap<String, String> = mutableMapOf()
 
-    private var messageBuilder: StringBuilder = StringBuilder()
+    protected var messageBuilder: StringBuilder = StringBuilder()
 
-    private var isBuildingMention: Boolean = false
+    protected var isBuildingMention: Boolean = false
 
-    private var embedLength = 0
+    protected var embedLength = 0
 
     /**
      * Helper constructor which can utilize raw channel object for its ID.
@@ -62,7 +58,7 @@ open class MessageBuilder(val channelId: String) : Builder<Message>
         return when
         {
             attachment != null -> Utility.discordAPI.createMessage(channelId, attachment!!)
-            embed != null -> Utility.discordAPI.createMessage(channelId, this.embed!!)
+            embed != null -> Utility.discordAPI.createMessage(channelId, EmbedWrapper(this.embed!!))
             else -> Utility.discordAPI.createMessage(channelId, this)
         }
     }
