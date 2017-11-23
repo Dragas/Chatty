@@ -8,6 +8,9 @@ import okhttp3.Request
 import okhttp3.Response
 import java.util.*
 
+/**
+ * Abstractly implements OkHTTP interceptor to conform to rate limiting standards possibly imposed by internet APIs.
+ */
 abstract class AbstractRateLimitInterceptor : Interceptor
 {
     protected open val shouldWaitForLimit = true
@@ -25,7 +28,7 @@ abstract class AbstractRateLimitInterceptor : Interceptor
             if (shouldWaitForLimit)
                 waitForLimit(limit)
             else
-                throw RateLimitException("Rate limit exceeded for url ${request.url()}")
+                throw RateLimitException("Rate limit exceeded for url ${request.url()}. You will be able to call this in ${getTimeSinceLastRequest(limit)} ms")
         }
         val response = chain.proceed(request)
         storeLimit(response)
