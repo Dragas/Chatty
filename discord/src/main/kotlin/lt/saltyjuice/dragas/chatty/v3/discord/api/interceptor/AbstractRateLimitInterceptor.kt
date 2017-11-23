@@ -10,6 +10,9 @@ import java.util.*
 
 /**
  * Abstractly implements OkHTTP interceptor to conform to rate limiting standards possibly imposed by internet APIs.
+ *
+ * For discord rate limits you may want to implement either [AccountLimiter], [ChannelLimiter], [GuildLimiter] instead,
+ * since they cover general categories of requests.
  */
 abstract class AbstractRateLimitInterceptor : Interceptor
 {
