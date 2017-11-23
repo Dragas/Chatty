@@ -14,6 +14,9 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Permits Rate limiting in discord based applications
  *
+ * Deprecation notice: You should implement an [AbstractRateLimitInterceptor] or use any of its implementations instead.
+ * This will be removed before proper release and currently serves as a notice.
+ *
  * @param shouldWait indicates whether or not the interceptor should throw an exception when rate limit is hit
  */
 @Deprecated("Implement AbstractRateLimit instead")
