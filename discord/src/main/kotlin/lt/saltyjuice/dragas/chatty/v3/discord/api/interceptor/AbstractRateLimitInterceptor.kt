@@ -65,7 +65,7 @@ abstract class AbstractRateLimitInterceptor : Interceptor
     abstract fun identify(request: Request): Limit?
 
     /**
-     * Returns reset delay for particular interceptor.
+     * Returns reset delay for particular interceptor in miliseconds.
      */
     abstract fun getResetDelay(): Long
 
