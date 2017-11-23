@@ -3,7 +3,9 @@
 ### Added
 
 - Added webhook APIs.
-- Added Apache/Tika (core) to validate images for avatar builder. 
+- Added Apache/Tika (core) to validate images for avatar builder.
+- Added some Guild API endpoints. Most of them are redundant anyways except for few in particular.
+- Added emoji endpoints.
 
 ### Changes
 
@@ -11,7 +13,12 @@
   - Previously `chatty-discord` would not attempt to resume shards when disconnecting from them as well as send "Identify"
 calls every time it reconnected.
   - Also DiscordSession now properly disconnects when receiving OP 7 request code.
-- Minor changes to rate limiter.
+- RateLimitInterceptor is now deprecated and will be removed in 1.0.0. Implement an AbstractRateLimiter instead.
+    - Added GuildLimiter, AccountLimiter and ChannelLimiter implementations. They're used  
+- Refactored some endpoints
+    - Message creation endpoints are now not general case and instead just contain 
+    a single field for each type: builder, embed or attachment.
+- `DiscordController.getUser` now does a network call if it can't find user in cache. 
 
 ## [0.4.3-SNAPSHOT]
 
