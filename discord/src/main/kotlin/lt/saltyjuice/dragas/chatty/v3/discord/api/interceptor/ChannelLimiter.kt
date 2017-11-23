@@ -28,6 +28,9 @@ abstract class ChannelLimiter : AbstractRateLimitInterceptor()
         return remaining < 1 && delay > 0
     }
 
+    /**
+     * Returns global supertype for this limiter
+     */
     open fun getGlobalType(): String
     {
         return PER_CHANNEL
