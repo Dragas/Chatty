@@ -3,6 +3,7 @@ package lt.saltyjuice.dragas.chatty.v3.discord.api
 import lt.saltyjuice.dragas.chatty.v3.discord.enumerated.Parameter
 import lt.saltyjuice.dragas.chatty.v3.discord.message.builder.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelDelete
+import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildEmojisUpdate
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.GatewayInit
 import retrofit2.Call
@@ -104,19 +105,11 @@ interface DiscordAPI
      * Returns the messages for a channel. If operating on a guild channel,
      * this endpoint requires the 'READ_MESSAGES' permission to be present
      * on the current user. Returns an array of message objects on success.
-     */
-    @GET("channels/{channel-id}/messages")
-    fun getChannelMessages(@Path("channel-id") channelId: String): Call<ArrayList<Message>>
-
-    /**
-     * Returns the messages for a channel. If operating on a guild channel,
-     * this endpoint requires the 'READ_MESSAGES' permission to be present
-     * on the current user. Returns an array of message objects on success.
      *
      * The [Parameter.BEFORE], [Parameter.AFTER], and [Parameter.AROUND] keys are mutually exclusive, only one may be passed at a time.
      */
     @GET("channels/{channel-id}/messages")
-    fun getChannelMessages(@Path("channel-id") channelId: String, @QueryMap map: Map<String, String>): Call<ArrayList<Message>>
+    fun getChannelMessages(@Path("channel-id") channelId: String, @QueryMap map: Map<String, String>): Call<List<Message>>
 
 
     /**
@@ -134,17 +127,7 @@ interface DiscordAPI
      */
     @POST("channels/{channel-id}/messages")
     @Multipart
-    fun createMessage(@Path("channel-id") channelId: String, @Part("content") message: String, @Part("file") file: File, @PartMap map: Map<String, String>): Call<Message>
-
-    /**
-     * Post a message to a guild text or DM channel. If operating on a guild channel, this endpoint requires the
-     * 'SEND_MESSAGES' permission to be present on the current user.
-     *
-     * Returns a message object. Fires a Message Create Gateway event. See [message formatting](https://discordapp.com/developers/docs/reference#message-formatting) for more information
-     * on how to properly format messages.
-     */
-    @POST("channels/{channel-id}/messages")
-    fun createMessage(@Path("channel-id") channelId: String, @Body message: MessageBuilder, @QueryMap map: Map<String, String>): Call<Message>
+    fun createMessage(@Path("channel-id") channelId: String, @Part("file") file: File): Call<Message>
 
     /**
      * Post a message to a guild text or DM channel. If operating on a guild channel, this endpoint requires the
@@ -164,8 +147,7 @@ interface DiscordAPI
      * on how to properly format messages.
      */
     @POST("channels/{channel-id}/messages")
-    @FormUrlEncoded
-    fun createMessage(@Path("channel-id") channelId: String, @Field("content") message: String, @FieldMap map: Map<String, String>): Call<Message>
+    fun createMessage(@Path("channel-id") channelId: String, @Body embed: Embed): Call<Message>
 
 
     /**
@@ -186,33 +168,33 @@ interface DiscordAPI
      * Returns a 204 empty response on success.
      */
     @PUT("channels/{channel-id}/messages/{message-id}/reactions/{emoji}/@me")
-    fun createReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String): Call<Any>
+    fun addReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String): Call<Unit>
 
     /**
      * Delete a reaction the current user has made for the message. Returns a 204 empty response on success.
      */
     @DELETE("channels/{channel-id}/messages/{message-id}/reactions/{emoji}/@me")
-    fun deleteOwnReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String): Call<Any>
+    fun deleteOwnReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String): Call<Unit>
 
     /**
      * Deletes another user's reaction. This endpoint requires the 'MANAGE_MESSAGES' permission to be
      * present on the current user. Returns a 204 empty response on success.
      */
     @DELETE("channels/{channel-id}/messages/{message-id}/reactions/{emoji}/{user-id}")
-    fun deleteUserReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String, @Path("user-id") userId: String): Call<Any>
+    fun deleteUserReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String, @Path("user-id") userId: String): Call<Unit>
 
     /**
      * Get a list of users that reacted with this emoji. Returns an array of [User] objects on success.
      */
     @GET("channels/{channel-id}/messages/{message-id}/reactions/{emoji}")
-    fun getUsersForReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String): Call<ArrayList<User>>
+    fun getUsersForReaction(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Path("emoji") emojiId: String): Call<List<User>>
 
     /**
      * Deletes all reactions on a message. This endpoint requires the 'MANAGE_MESSAGES'
      * permission to be present on the current user.
      */
     @DELETE("channels/{channel-id}/messages/{message-id}/reactions")
-    fun deleteAllReactions(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Any>
+    fun deleteAllReactions(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Unit>
 
     /**
      * Edit a previously sent message. You can only edit messages that have been sent by the current user.
@@ -230,14 +212,6 @@ interface DiscordAPI
     @FormUrlEncoded
     fun editMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Field("embed") embed: Embed): Call<Message>
 
-    /**
-     * Edit a previously sent message. You can only edit messages that have been sent by the current user.
-     * Returns a message object. Fires a Message Update Gateway event.
-     */
-    @PATCH("channels/{channel-id}/messages/{message-id}")
-    @FormUrlEncoded
-    fun editMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String, @Field("content") content: String, @Field("embed") embed: Embed): Call<Message>
-
 
     /**
      * Delete a message. If operating on a guild channel and trying to delete a message that
@@ -245,7 +219,7 @@ interface DiscordAPI
      * Returns a 204 empty response on success. Fires a Message Delete Gateway event.
      */
     @DELETE("channels/{channel-id}/messages/{message-id}")
-    fun deleteMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Any>
+    fun deleteMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Unit>
 
     /**
      *Delete multiple messages in a single request.
@@ -262,7 +236,7 @@ interface DiscordAPI
      */
     @POST("channels/{channel-id}/message/bulk-delete")
     @FormUrlEncoded
-    fun deleteMessageBulk(@Path("channel-id") channelId: String, @Field("messages") vararg messageId: String): Call<Any>
+    fun deleteMessageBulk(@Path("channel-id") channelId: String, @Field("messages") vararg messageId: String): Call<Unit>
 
     /**
      * Edit the channel permission overwrites for a user or role in a channel.
@@ -277,14 +251,14 @@ interface DiscordAPI
      */
     @PUT("channels/{channel-id}/permissions/{overwrite-id}")
     @FormUrlEncoded
-    fun editChannelPermissions(@Path("channel-id") channelId: String, @Path("overwrite-id") overwriteId: String, @FieldMap params: Map<String, String>): Call<Any>
+    fun editChannelPermissions(@Path("channel-id") channelId: String, @Path("overwrite-id") overwriteId: String, @FieldMap params: Map<String, String>): Call<Unit>
 
     /**
      * Returns a list of [Invite] objects (with [InviteMetadata]) for the channel.
      * Only usable for guild channels. Requires the 'MANAGE_CHANNELS' permission.
      */
     @GET("channels/{channel-id}/invites")
-    fun getChannelInvites(@Path("channel-id") channelId: String): Call<ArrayList<Invite>>
+    fun getChannelInvites(@Path("channel-id") channelId: String): Call<List<Invite>>
 
     /**
      * Create a new invite object for the channel. Only usable for guild channels.
@@ -306,7 +280,7 @@ interface DiscordAPI
      * Returns a 204 empty response on success. For more information about permissions, see permissions
      */
     @DELETE("channel/{channel-id}/permissions/{overwrite-id}")
-    fun deleteChannelPermission(@Path("channel-id") channelId: String, @Path("overwrite-id") overwriteId: String): Call<Any>
+    fun deleteChannelPermission(@Path("channel-id") channelId: String, @Path("overwrite-id") overwriteId: String): Call<Unit>
 
     /**
      * Post a typing indicator for the specified channel. Generally bots should not implement this route.
@@ -316,25 +290,25 @@ interface DiscordAPI
      * Returns a 204 empty response on success. Fires a Typing Start Gateway event.
      */
     @POST("channels/{channel-id}/typing")
-    fun triggerTypingIndicator(@Path("channel-id") channelId: String): Call<Any>
+    fun triggerTypingIndicator(@Path("channel-id") channelId: String): Call<Unit>
 
     /**
      * Returns all pinned messages in the channel as an array of [Message] objects.
      */
     @GET("channel/{channel-id}/pins")
-    fun getPinnedMessages(@Path("channel-id") channelId: String): Call<ArrayList<Message>>
+    fun getPinnedMessages(@Path("channel-id") channelId: String): Call<List<Message>>
 
     /**
      * Pin a message in a channel. Requires the 'MANAGE_MESSAGES' permission. Returns a 204 empty response on success.
      */
     @PUT("channels/{channel-id}/pins/{message-id}")
-    fun addPinnedMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Any>
+    fun addPinnedMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Unit>
 
     /**
      * Deletes a message in a channel. Requires the 'MANAGE_MESSAGES' permission. Returns a 204 empty response on success.
      */
     @DELETE("channels/{channel-id}/pins/{message-id}")
-    fun deletePinnedMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Any>
+    fun deletePinnedMessage(@Path("channel-id") channelId: String, @Path("message-id") messageId: String): Call<Unit>
 
 
     /**
@@ -345,13 +319,13 @@ interface DiscordAPI
      */
     @PUT("channels/{channel-id}/recipients/{user-id}")
     @FormUrlEncoded
-    fun addGroupDMRecipient(@Path("channel-id") channelId: String, @Path("user-id") userId: String, @Field("access_token") accessToken: String, @Field("nick") nickname: String): Call<Any>
+    fun addGroupDMRecipient(@Path("channel-id") channelId: String, @Path("user-id") userId: String, @Field("access_token") accessToken: String, @Field("nick") nickname: String): Call<Unit>
 
     /**
      * Removes a recipient from a Group DM
      */
     @DELETE("channels/{channel-id}/recipients/{user-id}")
-    fun removeGroupDMRecipient(@Path("channel-id") channelId: String, @Path("user-id") userId: String): Call<Any>
+    fun removeGroupDMRecipient(@Path("channel-id") channelId: String, @Path("user-id") userId: String): Call<Unit>
 //------------------------------------------------------Channel--------------------------------------------------
 
 //-------------------------------------------------------User----------------------------------------------------
@@ -445,5 +419,43 @@ interface DiscordAPI
     @DELETE("webhooks/{webhook-id}")
     fun deleteWebhook(@Path("webhook-id") webhookId: String): Call<Unit>
 
+//---------------------------------------------------------------------------------------------------------------
 
+//------------------------------------------------------Emoji----------------------------------------------------
+
+    /**
+     * Returns a list of [Emoji] objects for given guild
+     */
+    @GET("guilds/{guild-id}/emojis")
+    fun listGuildEmojis(@Path("guild-id") guildId: String): Call<List<Emoji>>
+
+    /**
+     * Returns an [Emoji] object for that [Guild] with given ID.
+     */
+    @GET("guilds/{guild-id}/emojis/{emoji-id}")
+    fun getGuildEmoji(@Path("guild-id") guildId: String, @Path("emoji-id") emojiId: String): Call<Emoji>
+
+    /**
+     * Create a new [Emoji] for the guild. Requires the 'MANAGE_EMOJIS' permission.
+     *
+     * Returns the new [Emoji] object on success. Fires a [EventGuildEmojisUpdate] Gateway event.
+     */
+    @POST("guilds/{guild-id}/emojis")
+    fun createGuildEmoji(@Path("guild-id") guildId: String, @Body emojiBuilder: EmojiBuilder): Call<Emoji>
+
+    /**
+     * Modify the given [Emoji]. Requires the 'MANAGE_EMOJIS' permission.
+     *
+     * Returns the updated [Emoji] object on success. Fires a [EventGuildEmojisUpdate] Gateway event.
+     */
+    @PATCH("guilds/{guild-id}/emojis/{emoji-id}")
+    fun modifyGuildEmoji(@Path("guild-id") guildId: String, @Path("emoji-id") emojiId: String, @Body emojiBuilder: EmojiBuilder): Call<Emoji>
+
+    /**
+     * Delete the given [Emoji]. Requires the 'MANAGE_EMOJIS' permission.
+     *
+     * Returns 204 No Content on success. Fires a [EventGuildEmojisUpdate] Gateway event.
+     */
+    @DELETE("guilds/{guild-id}/emojis/{emoji-id}")
+    fun deleteGuildEmoji(@Path("guild-id") guildId: String, @Path("emoji-id") emojiId: String): Call<Unit>
 }
