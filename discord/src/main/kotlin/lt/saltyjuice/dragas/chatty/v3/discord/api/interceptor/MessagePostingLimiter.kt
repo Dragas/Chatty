@@ -1,5 +1,8 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
 
+/**
+ * Limits message posting
+ */
 open class MessagePostingLimiter : MessageLimiter()
 {
     override fun getRequiredMethod(): Array<String>
