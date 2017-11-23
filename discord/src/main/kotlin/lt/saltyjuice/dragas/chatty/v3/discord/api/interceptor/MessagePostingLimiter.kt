@@ -1,6 +1,6 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
 
-open class MessagePostingLimiter : ChannelLimiter()
+open class MessagePostingLimiter : MessageLimiter()
 {
     override fun getRequiredMethod(): Array<String>
     {
@@ -15,11 +15,6 @@ open class MessagePostingLimiter : ChannelLimiter()
     override fun getMaxRequests(): Int
     {
         return MAX_REQUESTS
-    }
-
-    override fun getSegmentSize(): Int
-    {
-        return 4
     }
 
     companion object

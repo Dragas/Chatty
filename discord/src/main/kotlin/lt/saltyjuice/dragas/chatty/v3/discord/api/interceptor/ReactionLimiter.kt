@@ -29,6 +29,16 @@ open class ReactionLimiter : ChannelLimiter()
         return super.canLimit(request) && request.url().toString().contains("reaction", true)
     }
 
+    override fun getRequiredSubtype(): String
+    {
+        return "reactions"
+    }
+
+    override fun getSubtypeSegmentNumber(): Int
+    {
+        return 6
+    }
+
     companion object
     {
         @JvmStatic
