@@ -10,10 +10,15 @@ abstract class ChannelLimiter : AbstractRateLimitInterceptor()
 
     override fun canLimit(request: Request): Boolean
     {
+
         val url = request.url().encodedPathSegments()
-        val type = url[2]
+        if (url.size != getSegmentSize())
+            return false
+        val globalType = url[2]
+        val subtypeSegment = getSubtypeSegmentNumber()
+        val subType = url[subtypeSegment]
         val method = request.method()
-        return getRequiredMethod().contains(method) && type == PER_CHANNEL && url.size == getSegmentSize()
+        return getRequiredMethod().contains(method) && globalType == PER_CHANNEL && subType == getRequiredSubtype()
     }
 
     override fun isLimited(request: Request, limit: Limit): Boolean
@@ -60,4 +65,14 @@ abstract class ChannelLimiter : AbstractRateLimitInterceptor()
      * Returns how many segments should URL consist of to be usable by this interceptor
      */
     abstract fun getSegmentSize(): Int
+
+    /**
+     * Returns the required subtype for limited message
+     */
+    abstract fun getRequiredSubtype(): String
+
+    /**
+     * Returns the position of subtype segment
+     */
+    abstract fun getSubtypeSegmentNumber(): Int
 }
