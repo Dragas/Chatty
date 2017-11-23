@@ -1,4 +1,4 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
+package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.account
 
 import okhttp3.Request
 

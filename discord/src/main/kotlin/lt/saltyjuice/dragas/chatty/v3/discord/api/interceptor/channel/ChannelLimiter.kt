@@ -1,5 +1,6 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
+package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.channel
 
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.AbstractRateLimitInterceptor
 import okhttp3.Request
 import okhttp3.Response
 import java.util.concurrent.ConcurrentHashMap

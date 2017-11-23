@@ -1,4 +1,6 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
+package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.guild
+
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.channel.ChannelLimiter
 
 /**
  * Works just like Channel limiter, but for guild supertype.

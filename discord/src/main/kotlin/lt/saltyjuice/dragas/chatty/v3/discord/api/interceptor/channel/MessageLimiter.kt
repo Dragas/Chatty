@@ -1,4 +1,4 @@
-package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor
+package lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.channel
 
 /**
  * Generifies some constants for message limiters
