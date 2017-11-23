@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @param shouldWait indicates whether or not the interceptor should throw an exception when rate limit is hit
  */
+@Deprecated("Implement AbstractRateLimit instead")
 open class RateLimitInterceptor @JvmOverloads constructor(protected open val shouldWait: Boolean = false) : Interceptor
 {
     @Throws(RateLimitException::class)
