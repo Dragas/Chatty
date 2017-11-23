@@ -11,7 +11,7 @@ open class ReactionLimiter : ChannelLimiter()
 
     override fun getSegmentSize(): Int
     {
-        return 7
+        return 9
     }
 
     override fun getMaxRequests(): Int

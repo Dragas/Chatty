@@ -7,7 +7,7 @@ abstract class MessageLimiter : ChannelLimiter()
 {
     override fun getSegmentSize(): Int
     {
-        return 4
+        return 5
     }
 
     override fun getRequiredSubtype(): String
