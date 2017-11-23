@@ -5,7 +5,12 @@ import com.google.gson.GsonBuilder
 import lt.saltyjuice.dragas.chatty.v3.discord.Settings
 import lt.saltyjuice.dragas.chatty.v3.discord.adapter.AuditLogChangeAdapter
 import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.CommonInterceptor
-import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.RateLimitInterceptor
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.account.GlobalRateLimiter
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.account.PatchUsernameLimiter
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.channel.MessageDeletingLimiter
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.channel.MessagePostingLimiter
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.channel.ReactionLimiter
+import lt.saltyjuice.dragas.chatty.v3.discord.api.interceptor.guild.PatchMemberLimiter
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.AuditLogChange
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -103,7 +108,13 @@ object Utility
         {
             addInterceptor(CommonInterceptor())
             addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            addInterceptor(RateLimitInterceptor(true))
+            //addInterceptor(RateLimitInterceptor(true))
+            addInterceptor(MessagePostingLimiter())
+            addInterceptor(MessageDeletingLimiter())
+            addInterceptor(ReactionLimiter())
+            addInterceptor(PatchUsernameLimiter())
+            addInterceptor(PatchMemberLimiter())
+            addInterceptor(GlobalRateLimiter())
         }
     }
 
