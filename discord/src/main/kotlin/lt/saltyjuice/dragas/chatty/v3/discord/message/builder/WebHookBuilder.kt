@@ -8,7 +8,7 @@ import lt.saltyjuice.dragas.chatty.v3.discord.exception.BuilderException
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.WebHook
 import retrofit2.Call
 
-open class WebHookBuilder(private val channelId: String) : AvatarBuilder(), Builder<WebHook>
+open class WebHookBuilder(private val channelId: String) : ImageBuilder(), Builder<WebHook>
 {
     /**
      * name of the webhook (2-32 characters)

@@ -10,13 +10,15 @@ import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
-open class AvatarBuilder
+open class ImageBuilder
 {
     @Expose
     @SerializedName("avatar")
-    private var mAvatar: String? = null
+    protected var mAvatar: String? = null
 
-    private var mImageType: String = ""
+    protected var mImageType: String = ""
+
+    protected open val validatesSize: Boolean = true
 
     fun getAvatar(): String?
     {
@@ -33,20 +35,20 @@ open class AvatarBuilder
         validateImage()
     }
 
-    open fun avatar(avatar: File): AvatarBuilder
+    open fun image(image: File): ImageBuilder
     {
-        val filesize = avatar.length()
-        if (filesize > Settings.MAX_IMAGE_SIZE)
+        val filesize = image.length()
+        if (validatesSize && filesize > Settings.MAX_IMAGE_SIZE)
         {
             throw AvatarBuilderException("Expected file size to be ${Settings.MAX_IMAGE_SIZE} at most. Got $filesize")
         }
-        FileInputStream(avatar).use()
+        FileInputStream(image).use()
         {
             val config = TikaConfig.getDefaultConfig()
             val mediatype = config.mimeRepository.detect(it, Metadata())
             mImageType = mediatype.toString()
-            val string = Base64.getEncoder().encodeToString(avatar.readBytes())
-            mImageType = "data:$mImageType;base64$string"
+            val string = Base64.getEncoder().encodeToString(image.readBytes())
+            mImageType = "data:$mImageType;base64,$string"
         }
         return this
     }

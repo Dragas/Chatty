@@ -11,7 +11,7 @@ import retrofit2.Call
 /**
  * Unlike other builders, User builder does not need
  */
-open class UserBuilder : AvatarBuilder(), Builder<User>
+open class UserBuilder : ImageBuilder(), Builder<User>
 {
     @Expose
     @SerializedName("username")
