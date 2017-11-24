@@ -1,3 +1,17 @@
+## [0.5.2-SNAPSHOT]
+
+### Changes
+
+- Fixes an issue where Resumed sessions wouldn't have their shard [id, count] array, thus preventing them from being resumed.
+- Fixes an issue where guildless channels would be attempted to get saved.
+- Fixes an issue where rate limiter (for channels in particular) would incorrectly limit requests.
+
+## [0.5.1-SNAPSHOT]
+
+### Changes
+
+- Fixes an issue where embed messages would be sent incorrectly.
+
 ## [0.5.0-SNAPSHOT]
 
 ### Added
@@ -18,7 +32,8 @@ calls every time it reconnected.
 - Refactored some endpoints
     - Message creation endpoints are now not general case and instead just contain 
     a single field for each type: builder, embed or attachment.
-- `DiscordController.getUser` now does a network call if it can't find user in cache. 
+- `DiscordController.getUser` now does a network call if it can't find user in cache.
+- Builders are now in `message.builder` package. 
 
 ## [0.4.3-SNAPSHOT]
 
