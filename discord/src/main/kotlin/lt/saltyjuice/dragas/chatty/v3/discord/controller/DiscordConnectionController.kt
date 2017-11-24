@@ -105,7 +105,8 @@ open class DiscordConnectionController : AbstractDiscordConnectionController()
     override fun onChannelCreate(request: Channel)
     {
         channels[request.id] = request
-        guilds[request.guildId]?.channels?.add(request)
+        if (request.guildId != null)
+            guilds[request.guildId!!]?.channels?.add(request)
     }
 
     override fun onMemberAdd(request: ChangedMember)
