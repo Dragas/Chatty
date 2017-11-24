@@ -89,12 +89,13 @@ abstract class AbstractRateLimitInterceptor : Interceptor
     abstract fun getCurrentRequestCount(limit: Limit): Int
 
 
-    open class Limit @JvmOverloads constructor(response: Response? = null)
+    open class Limit @JvmOverloads constructor(response: Response? = null) : Comparable<Limit>
     {
         open val global: Boolean? = response?.header(X_RATELIMIT_GLOBAL)?.toBoolean()
         open val limit: Int? = response?.header(X_RATELIMIT_LIMIT)?.toInt()
         open val remaining: Int? = response?.header(X_RATELIMIT_REMAINING)?.toInt()
-        open var reset: Long? = response?.header(X_RATELIMIT_RESET)?.toLong()
+        open val reset: Long? = response?.header(X_RATELIMIT_RESET)?.toLong()?.times(1000L)
+        open val date = response?.header(DATE)
         open val isExpired: Boolean
             get()
             {
@@ -103,8 +104,8 @@ abstract class AbstractRateLimitInterceptor : Interceptor
 
         open fun getDelay(): Long
         {
-            val reset = this.reset ?: throw NullPointerException("Reset epoch was not specified")
-            val time = Date().time.div(1000).minus(reset)
+            val reset = this.reset ?: Date().time
+            val time = reset.minus(Date().time)
             return time
         }
 
@@ -114,6 +115,11 @@ abstract class AbstractRateLimitInterceptor : Interceptor
                 return@runBlocking
             val time = getDelay()
             delay(time)
+        }
+
+        override fun compareTo(other: Limit): Int
+        {
+            return date!!.compareTo(other.date!!)
         }
 
         companion object
@@ -126,6 +132,9 @@ abstract class AbstractRateLimitInterceptor : Interceptor
             protected val X_RATELIMIT_REMAINING = "X-RateLimit-REMAINING"
             @JvmStatic
             protected val X_RATELIMIT_RESET = "X-RateLimit-RESET"
+
+            @JvmStatic
+            protected val DATE = "Date"
         }
     }
 

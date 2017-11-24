@@ -46,7 +46,9 @@ abstract class ChannelLimiter : AbstractRateLimitInterceptor()
     {
         val identifier = response.request().url().encodedPathSegments()[3]
         val limit = Limit(response)
-        limits[identifier] = limit
+        val oldLimit = limits[identifier]
+        if (oldLimit == null || limit >= oldLimit)
+            limits[identifier] = limit
     }
 
     override fun identify(request: Request): Limit?
