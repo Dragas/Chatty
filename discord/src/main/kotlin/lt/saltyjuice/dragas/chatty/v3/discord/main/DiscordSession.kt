@@ -1,13 +1,11 @@
 package lt.saltyjuice.dragas.chatty.v3.discord.main
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
 import lt.saltyjuice.dragas.chatty.v3.core.main.Client
 import lt.saltyjuice.dragas.chatty.v3.discord.Settings
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventReady
+import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventResumed
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Hello
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Identify
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.Ready
@@ -23,13 +21,14 @@ open class DiscordSession(private val session: Session)
 {
     protected open lateinit var job: Job
     protected open lateinit var identifyWrapper: Identify
-    protected open var hello: Hello? = null
+    protected open lateinit var hello: Hello
     protected open val maxBeats = 3
     @get:Synchronized
     @set:Synchronized
     protected open var lastAck: Date? = null
     protected var ready: Ready? = null
     @set:Synchronized
+    @get:Synchronized
     protected var sequenceNumber: Long? = null
     protected var resumable = true
 
@@ -44,12 +43,12 @@ open class DiscordSession(private val session: Session)
         }
     }
 
-    open fun heartbeat(identify: Identify) = launch(CommonPool)
+    open fun heartbeat(identify: Identify) = launch(Unconfined)
     {
-        while (true)
+        while (session.isOpen)
         {
             heartBeat()
-            delay(hello!!.heartBeatInterval)
+            delay(hello.heartBeatInterval)
         }
     }
 
@@ -62,6 +61,7 @@ open class DiscordSession(private val session: Session)
             is GatewayHello -> onHello(message)
             is GatewayAck -> onAck(message)
             is GatewayReconnect -> onReconnect(message)
+            is EventResumed -> onResume(message)
             is EventReady -> onReady(message)
         }
         launch(CommonPool)
@@ -92,6 +92,11 @@ open class DiscordSession(private val session: Session)
         session.close()
     }
 
+    open fun onResume(message: EventResumed)
+    {
+
+    }
+
     open fun onReady(request: EventReady)
     {
         this.ready = request.payload
@@ -104,7 +109,6 @@ open class DiscordSession(private val session: Session)
 
     open fun identify(identify: Identify)
     {
-
         val gatewayIdentify = if (identify is Resume)
         {
             GatewayResume(identify)
@@ -133,8 +137,9 @@ open class DiscordSession(private val session: Session)
 
     open fun heartBeat()
     {
-        val lastack = this.lastAck
-        if (lastack != null && Date().time.minus(lastack.time) > hello!!.heartBeatInterval.times(maxBeats) && !session.isOpen)
+        val lastack = this.lastAck?.time ?: Date().time
+        val delaySinceLastAck = Date().time.minus(lastack)
+        if (lastack != null && delaySinceLastAck >= hello.heartBeatInterval.times(maxBeats))
         {
             stop()
             return
@@ -145,7 +150,7 @@ open class DiscordSession(private val session: Session)
 
     open fun stop()
     {
-        if (!session.isOpen)
+        if (session.isOpen)
             session.close()
         job.cancel()
     }
@@ -155,8 +160,12 @@ open class DiscordSession(private val session: Session)
         return Resume().apply()
         {
             this.token = identifyWrapper.token
-            this.sequenceNumber = sequenceNumber
+            this.sequenceNumber = this@DiscordSession.sequenceNumber
             this.session = ready?.sessionId ?: ""
+            this.shard = identifyWrapper.shard
+            this.compress = identifyWrapper.compress
+            this.threshold = identifyWrapper.threshold
+            this.presence = identifyWrapper.presence
         }
     }
 
@@ -172,7 +181,7 @@ open class DiscordSession(private val session: Session)
         @JvmStatic
         fun createShard(shard: Int, shardsMax: Int)
         {
-            launch(CommonPool) { identifyChannel.send((createIdentify(shard, shardsMax))) }
+            launch(Unconfined) { identifyChannel.send((createIdentify(shard, shardsMax))) }
         }
 
         @JvmStatic
@@ -189,7 +198,7 @@ open class DiscordSession(private val session: Session)
         @JvmStatic
         fun resume(resume: Resume)
         {
-            launch(CommonPool) { identifyChannel.send(resume) }
+            launch(Unconfined) { identifyChannel.send(resume) }
         }
     }
 }
