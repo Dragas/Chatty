@@ -6,6 +6,7 @@ import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventChannelDelete
 import lt.saltyjuice.dragas.chatty.v3.discord.message.event.EventGuildEmojisUpdate
 import lt.saltyjuice.dragas.chatty.v3.discord.message.general.*
 import lt.saltyjuice.dragas.chatty.v3.discord.message.request.GatewayInit
+import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.*
 import retrofit2.http.Field
@@ -127,7 +128,18 @@ interface DiscordAPI
      */
     @POST("channels/{channel-id}/messages")
     @Multipart
+    @Deprecated("Use createMessage(String, MultipartBody.Part) instead")
     fun createMessage(@Path("channel-id") channelId: String, @Part("file") file: File): Call<Message>
+
+    /**
+     * Post a message to a guild text or DM channel. If operating on a guild channel, this endpoint requires the
+     * 'SEND_MESSAGES' permission to be present on the current user.
+     * Returns a message object. Fires a Message Create Gateway event. See [message formatting](https://discordapp.com/developers/docs/reference#message-formatting) for more information
+     * on how to properly format messages.
+     */
+    @POST("channels/{channel-id}/messages")
+    @Multipart
+    fun createMessage(@Path("channel-id") channelId: String, @Part file: MultipartBody.Part): Call<Message>
 
     /**
      * Post a message to a guild text or DM channel. If operating on a guild channel, this endpoint requires the
